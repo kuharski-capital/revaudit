@@ -757,7 +757,7 @@ Return this exact JSON structure:
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:600, color:"#f1f5f9", marginBottom:10 }}>Website Signals Detected</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {Object.entries(result.signals).map(([key, val]) => {
+                {Object.entries(result.signals || {}).map(([key, val]) => {
                   const labels = { hasOnlineBooking:"Online Booking", hasLiveChat:"Live Chat", phoneOnly:"Phone Only", hasReviews:"Reviews Present", hasServiceAgreements:"Service Agreements", hasPricing:"Pricing Page", hasPortfolio:"Portfolio/Cases", hasTeamPage:"Team Page", hasBlog:"Blog/Content", hasTestimonials:"Testimonials", multipleLocations:"Multiple Locations", hasJobsPage:"Hiring/Jobs" };
                   const isGood = ["hasOnlineBooking","hasLiveChat","hasReviews","hasServiceAgreements","hasPricing","hasPortfolio","hasTeamPage","hasBlog","hasTestimonials","multipleLocations"].includes(key) ? val : !val;
                   return (
