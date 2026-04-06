@@ -51,6 +51,26 @@ const BENCHMARKS = {
     billing: { unbilledWorkPct: 12, underbillingPct: 8, invoiceLagDays: 45 },
     retention: { churnRate: 28, maintenanceAttachRate: 4, missedUpsellRate: 52, missingReferralRate: 48 },
     forecasting: { forecastAccuracy: 42, technicianUtilization: 58, scheduleUtilization: 52 }
+  },
+  realestate: {
+    demand: { missedCallRate: 16, leadResponseMinutes: 90, bookingRate: 48, noFollowUpRate: 38, capacityDeclineRate: 6 },
+    sales: { quoteCloseRate: 28, underpricingRate: 32, avgUnderpricingPct: 8, scopeCreepFreq: 22, scopeCreepImpact: 12 },
+    materials: { wasteRate: 2, reBuyRate: 1, shrinkageRate: 0.5, overstockRate: 2 },
+    labor: { laborOverrunPct: 14, reworkRatePct: 18, technicianUtilization: 58 },
+    execution: { returnVisitRate: 6, lateJobPct: 32, incompleteJobRate: 14, undocumentedRate: 42 },
+    billing: { unbilledWorkPct: 18, underbillingPct: 12, invoiceLagDays: 38 },
+    retention: { churnRate: 38, maintenanceAttachRate: 6, missedUpsellRate: 52, missingReferralRate: 62 },
+    forecasting: { forecastAccuracy: 44, technicianUtilization: 58, scheduleUtilization: 54 }
+  },
+  financial: {
+    demand: { missedCallRate: 6, leadResponseMinutes: 180, bookingRate: 38, noFollowUpRate: 42, capacityDeclineRate: 4 },
+    sales: { quoteCloseRate: 32, underpricingRate: 24, avgUnderpricingPct: 14, scopeCreepFreq: 38, scopeCreepImpact: 18 },
+    materials: { wasteRate: 1, reBuyRate: 0.5, shrinkageRate: 0.5, overstockRate: 1 },
+    labor: { laborOverrunPct: 16, reworkRatePct: 24, technicianUtilization: 62 },
+    execution: { returnVisitRate: 4, lateJobPct: 22, incompleteJobRate: 18, undocumentedRate: 48 },
+    billing: { unbilledWorkPct: 22, underbillingPct: 14, invoiceLagDays: 42 },
+    retention: { churnRate: 24, maintenanceAttachRate: 12, missedUpsellRate: 48, missingReferralRate: 56 },
+    forecasting: { forecastAccuracy: 52, technicianUtilization: 62, scheduleUtilization: 60 }
   }
 };
 
@@ -98,6 +118,28 @@ const PRESETS = {
     billing: { jobsCompletedPerMonth: 8, unbilledWorkPct: 14, avgInvoiceValue: 26000, invoiceLagDays: 32, underbillingPct: 9, unapprovedDiscountsPerMonth: 4200, unbilledChangeOrders: 4, avgUnbilledChangeOrderValue: 3800, writeOffsPerMonth: 3200 },
     retention: { activeCustomers: 68, repeatRate: 44, churnRate: 34, maintenanceAttachRate: 8, eligibleForAgreements: 40, avgAgreementValue: 4800, postJobFollowUpRate: 28, reviewRequestRate: 22, upsellConversionRate: 14, missedUpsellRate: 42, avgUpsellValue: 12000, avgCLTV: 85000, referralCaptureRate: 18, missingReferralRate: 58, avgReferralJobValue: 28000, referralConversionFactor: 0.25 },
     forecasting: { forecastAccuracy: 48, scheduleUtilization: 58, revenueVolatility: 5, rescheduledJobs: 3, avgRescheduleCost: 2400, capacityPlanningAccuracy: 44, technicianUtilization: 62, coordinationScore: 4, jobsLostToSchedulingGaps: 2, avgLostScheduledJobValue: 28000, availableTechHours: 2800, revenuePerTechHour: 185 }
+  },
+  realestate: {
+    company: { name: "Pinnacle Realty Group", industry: "Real Estate Firm", annualRevenue: 4200000, grossMargin: 68, employees: 24, fieldTechs: 0, officeStaff: 24, avgJobSize: 14500, jobsPerMonth: 18, salesCycleDays: 60, primaryChannel: "Referrals / Digital", serviceArea: "Metro Area" },
+    demand: { leadsPerMonth: 95, missedCallRate: 16, leadResponseMinutes: 90, bookingRate: 48, noFollowUpRate: 38, capacityDeclineRate: 6, avgJobValue: 14500 },
+    sales: { estimatesPerMonth: 42, quoteCloseRate: 28, avgQuotedJobValue: 18000, underpricingRate: 32, avgUnderpricingPct: 8, missedChangeOrders: 4, avgMissedChangeOrderValue: 2800, scopeCreepFreq: 22, scopeCreepImpact: 12 },
+    materials: { monthlyMaterialSpend: 18000, wasteRate: 2, reBuyRate: 1, shrinkageRate: 0.5, overstockRate: 2, returnLossPerMonth: 400, shortageJobsPerMonth: 1, avgShortageImpact: 800 },
+    labor: { totalLaborHours: 3200, loadedLaborCostPerHour: 88, laborOverrunPct: 14, reworkRatePct: 18, avgReworkHours: 5.0, idleWaitHours: 280, travelInefficHours: 160, delayedJobs: 6, avgHoursLostPerDelay: 4.0 },
+    execution: { jobsPerMonth: 18, returnVisitRate: 6, avgReturnVisitCost: 680, lateJobPct: 32, avgDelayedJobCost: 1800, incompleteJobRate: 14, incompleteJobCost: 3200, callbacksPerMonth: 4, avgCallbackCost: 920, undocumentedRate: 42, revenueLeakagePerUndocumented: 1200, safetyComplianceCosts: 600 },
+    billing: { jobsCompletedPerMonth: 16, unbilledWorkPct: 18, avgInvoiceValue: 14500, invoiceLagDays: 38, underbillingPct: 12, unapprovedDiscountsPerMonth: 3800, unbilledChangeOrders: 3, avgUnbilledChangeOrderValue: 2400, writeOffsPerMonth: 2800 },
+    retention: { activeCustomers: 180, repeatRate: 28, churnRate: 38, maintenanceAttachRate: 6, eligibleForAgreements: 80, avgAgreementValue: 2400, postJobFollowUpRate: 22, reviewRequestRate: 28, upsellConversionRate: 8, missedUpsellRate: 52, avgUpsellValue: 8500, avgCLTV: 42000, referralCaptureRate: 14, missingReferralRate: 62, avgReferralJobValue: 14500, referralConversionFactor: 0.28 },
+    forecasting: { forecastAccuracy: 44, scheduleUtilization: 54, revenueVolatility: 5, rescheduledJobs: 5, avgRescheduleCost: 1200, capacityPlanningAccuracy: 42, technicianUtilization: 58, coordinationScore: 4, jobsLostToSchedulingGaps: 3, avgLostScheduledJobValue: 14500, availableTechHours: 3200, revenuePerTechHour: 165 }
+  },
+  financial: {
+    company: { name: "Meridian Financial Advisors", industry: "Financial Services Firm", annualRevenue: 5800000, grossMargin: 72, employees: 28, fieldTechs: 0, officeStaff: 28, avgJobSize: 22000, jobsPerMonth: 14, salesCycleDays: 75, primaryChannel: "Referrals / Events", serviceArea: "Regional" },
+    demand: { leadsPerMonth: 52, missedCallRate: 6, leadResponseMinutes: 180, bookingRate: 38, noFollowUpRate: 42, capacityDeclineRate: 4, avgJobValue: 22000 },
+    sales: { estimatesPerMonth: 22, quoteCloseRate: 32, avgQuotedJobValue: 28000, underpricingRate: 24, avgUnderpricingPct: 14, missedChangeOrders: 3, avgMissedChangeOrderValue: 4800, scopeCreepFreq: 38, scopeCreepImpact: 18 },
+    materials: { monthlyMaterialSpend: 12000, wasteRate: 1, reBuyRate: 0.5, shrinkageRate: 0.5, overstockRate: 1, returnLossPerMonth: 200, shortageJobsPerMonth: 0, avgShortageImpact: 0 },
+    labor: { totalLaborHours: 3800, loadedLaborCostPerHour: 110, laborOverrunPct: 16, reworkRatePct: 24, avgReworkHours: 7.0, idleWaitHours: 320, travelInefficHours: 80, delayedJobs: 4, avgHoursLostPerDelay: 6.0 },
+    execution: { jobsPerMonth: 14, returnVisitRate: 4, avgReturnVisitCost: 1100, lateJobPct: 22, avgDelayedJobCost: 3200, incompleteJobRate: 18, incompleteJobCost: 8500, callbacksPerMonth: 3, avgCallbackCost: 1600, undocumentedRate: 48, revenueLeakagePerUndocumented: 2200, safetyComplianceCosts: 1800 },
+    billing: { jobsCompletedPerMonth: 12, unbilledWorkPct: 22, avgInvoiceValue: 22000, invoiceLagDays: 42, underbillingPct: 14, unapprovedDiscountsPerMonth: 5200, unbilledChangeOrders: 3, avgUnbilledChangeOrderValue: 4200, writeOffsPerMonth: 4800 },
+    retention: { activeCustomers: 145, repeatRate: 62, churnRate: 24, maintenanceAttachRate: 12, eligibleForAgreements: 95, avgAgreementValue: 8400, postJobFollowUpRate: 34, reviewRequestRate: 28, upsellConversionRate: 16, missedUpsellRate: 48, avgUpsellValue: 18000, avgCLTV: 145000, referralCaptureRate: 18, missingReferralRate: 56, avgReferralJobValue: 22000, referralConversionFactor: 0.32 },
+    forecasting: { forecastAccuracy: 52, scheduleUtilization: 60, revenueVolatility: 4, rescheduledJobs: 3, avgRescheduleCost: 2200, capacityPlanningAccuracy: 48, technicianUtilization: 62, coordinationScore: 5, jobsLostToSchedulingGaps: 2, avgLostScheduledJobValue: 22000, availableTechHours: 3800, revenuePerTechHour: 210 }
   },
   construction: {
     company: { name: "Summit Custom Homes", industry: "Custom Home Construction", annualRevenue: 8500000, grossMargin: 22, employees: 32, fieldTechs: 24, officeStaff: 8, avgJobSize: 680000, jobsPerMonth: 1, salesCycleDays: 90, primaryChannel: "Referrals / Showroom", serviceArea: "Regional" },
@@ -565,6 +607,8 @@ const PRESET_BTNS = [
   {key:"plumbing",label:"🔩 Plumbing"},
   {key:"advertising",label:"📣 Ad Agency"},
   {key:"construction",label:"🏠 Custom Homes"},
+  {key:"realestate",label:"🏡 Real Estate"},
+  {key:"financial",label:"💼 Financial Firm"},
 ];
 
 export default function RevAudit() {
