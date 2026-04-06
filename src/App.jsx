@@ -682,10 +682,10 @@ Return this exact JSON structure:
         })
       });
       const data = await response.json();
-      const text = data.content
-        .filter(b => b.type === "text")
+      const text = (data.content || data.completion || [])
+        .filter(b => b && b.type === "text")
         .map(b => b.text)
-        .join("");
+        .join("") || (typeof data.content === "string" ? data.content : JSON.stringify(data));
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
       setResult(parsed);
