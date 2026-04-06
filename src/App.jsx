@@ -590,6 +590,7 @@ function RecsPanel({ recs }) {
 
 const COLORS = ["#f97316","#fb923c","#ef4444","#eab308","#22c55e","#0ea5e9","#a855f7","#ec4899"];
 const NAV = [
+  {key:"scan",label:"Website Scan",icon:"🔍"},
   {key:"company",label:"Company Profile",icon:"🏢"},
   {key:"demand",label:"Demand Conversion",icon:"📡"},
   {key:"sales",label:"Sales / Estimating",icon:"📋"},
@@ -611,8 +612,209 @@ const PRESET_BTNS = [
   {key:"financial",label:"💼 Financial Firm"},
 ];
 
+
+function WebScanPanel({ onApply }) {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+
+  const runScan = async () => {
+    if (!url.trim()) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const cleanUrl = url.trim().startsWith("http") ? url.trim() : "https://" + url.trim();
+      const prompt = `You are a business analyst reviewing a company website. Analyze this website URL and extract all signals you can about the business. Return ONLY a JSON object with no other text.
+
+Website URL: ${cleanUrl}
+
+Return this exact JSON structure:
+{
+  "companyName": "detected company name",
+  "industry": "detected industry (be specific: e.g. Electrical Contractor, HVAC Company, Real Estate Firm, Financial Advisory, etc.)",
+  "presetKey": "one of: electrical, hvac, plumbing, advertising, construction, realestate, financial (pick closest match)",
+  "estimatedRevenue": number in dollars (estimate annual revenue based on size signals),
+  "estimatedEmployees": number,
+  "serviceArea": "detected service area or region",
+  "primaryChannel": "detected primary sales channel",
+  "signals": {
+    "hasOnlineBooking": boolean,
+    "hasLiveChat": boolean,
+    "phoneOnly": boolean,
+    "hasReviews": boolean,
+    "hasServiceAgreements": boolean,
+    "hasPricing": boolean,
+    "hasPortfolio": boolean,
+    "hasTeamPage": boolean,
+    "hasBlog": boolean,
+    "hasTestimonials": boolean,
+    "multipleLocations": boolean,
+    "hasJobsPage": boolean
+  },
+  "leakageFlags": [
+    "list of specific leakage risks you observe from the website (e.g. no online booking suggests high missed call rate, no pricing page suggests underpricing risk, etc.)"
+  ],
+  "estimatedInputs": {
+    "missedCallRate": number,
+    "bookingRate": number,
+    "noFollowUpRate": number,
+    "leadResponseMinutes": number,
+    "quoteCloseRate": number,
+    "underpricingRate": number,
+    "churnRate": number,
+    "missingReferralRate": number,
+    "undocumentedRate": number,
+    "unbilledWorkPct": number
+  },
+  "summary": "2-3 sentence plain English summary of what you found and the biggest revenue leakage risks"
+}`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          tools: [{ type: "web_search_20250305", name: "web_search" }],
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await response.json();
+      const text = data.content
+        .filter(b => b.type === "text")
+        .map(b => b.text)
+        .join("");
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setResult(parsed);
+    } catch (e) {
+      setError("Could not analyze this website. Try entering just the domain (e.g. acmeplumbing.com) or check the URL and try again.");
+    }
+    setLoading(false);
+  };
+
+  const PRESET_MAP = { electrical:"electrical", hvac:"hvac", plumbing:"plumbing", advertising:"advertising", construction:"construction", realestate:"realestate", financial:"financial" };
+
+  return (
+    <div className="ra-section">
+      <div style={{ marginBottom:24 }}>
+        <h2 style={{ fontSize:18, fontWeight:700, color:"#f1f5f9", marginBottom:8, marginTop:0 }}>Website Scan</h2>
+        <p style={{ fontSize:13, color:"#64748b", margin:0, lineHeight:1.6 }}>Enter a prospect's website URL and we'll analyze it to detect their industry, estimate leakage risks, and pre-fill the audit with intelligent defaults.</p>
+      </div>
+
+      <div style={{ background:"#0a0f1e", border:"1px solid #1e293b", borderRadius:12, padding:24, marginBottom:20 }}>
+        <div style={{ fontSize:12, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:8, fontWeight:500 }}>Enter Company Website</div>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <input
+            type="text"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && runScan()}
+            placeholder="e.g. acmeplumbing.com or https://precisionelectric.com"
+            style={{ flex:1, minWidth:240, background:"#0f172a", border:"1px solid #334155", borderRadius:8, padding:"10px 14px", color:"#e2e8f0", fontSize:14, fontFamily:"inherit", outline:"none" }}
+          />
+          <button onClick={runScan} disabled={loading || !url.trim()} style={{ padding:"10px 24px", background:loading?"#1c0a00":"#f97316", border:"none", borderRadius:8, color:"#fff", fontSize:14, fontWeight:700, cursor:loading||!url.trim()?"not-allowed":"pointer", opacity:!url.trim()?0.5:1, transition:"all 0.15s", whiteSpace:"nowrap" }}>
+            {loading ? "Scanning..." : "🔍 Scan Website"}
+          </button>
+        </div>
+        {error && <div style={{ marginTop:12, padding:"10px 14px", background:"#1c0000", border:"1px solid #ef444440", borderRadius:8, fontSize:12, color:"#fca5a5" }}>{error}</div>}
+      </div>
+
+      {loading && (
+        <div style={{ background:"#0a0f1e", border:"1px solid #1e293b", borderRadius:12, padding:32, textAlign:"center" }}>
+          <div style={{ fontSize:32, marginBottom:12 }}>🔍</div>
+          <div style={{ fontSize:14, color:"#64748b", marginBottom:6 }}>Scanning website and analyzing business signals...</div>
+          <div style={{ fontSize:12, color:"#475569" }}>This takes 10-20 seconds</div>
+        </div>
+      )}
+
+      {result && (
+        <div>
+          <div style={{ background:"#0a0f1e", border:"1px solid #1e293b", borderRadius:12, padding:24, marginBottom:16 }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap", marginBottom:20 }}>
+              <div>
+                <div style={{ fontSize:20, fontWeight:800, color:"#f1f5f9", marginBottom:4 }}>{result.companyName}</div>
+                <div style={{ fontSize:13, color:"#64748b" }}>{result.industry} · {result.serviceArea}</div>
+              </div>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:10, color:"#475569", textTransform:"uppercase", letterSpacing:"0.06em" }}>Est. Revenue</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#f97316" }}>{result.estimatedRevenue >= 1000000 ? "$"+(result.estimatedRevenue/1000000).toFixed(1)+"M" : "$"+(result.estimatedRevenue/1000).toFixed(0)+"K"}</div>
+                </div>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:10, color:"#475569", textTransform:"uppercase", letterSpacing:"0.06em" }}>Est. Employees</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#f1f5f9" }}>{result.estimatedEmployees}</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding:"14px 16px", background:"#0d1a2d", border:"1px solid #0ea5e930", borderRadius:10, marginBottom:16, fontSize:13, color:"#94a3b8", lineHeight:1.7 }}>
+              {result.summary}
+            </div>
+
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:12, fontWeight:600, color:"#f1f5f9", marginBottom:10 }}>Website Signals Detected</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {Object.entries(result.signals).map(([key, val]) => {
+                  const labels = { hasOnlineBooking:"Online Booking", hasLiveChat:"Live Chat", phoneOnly:"Phone Only", hasReviews:"Reviews Present", hasServiceAgreements:"Service Agreements", hasPricing:"Pricing Page", hasPortfolio:"Portfolio/Cases", hasTeamPage:"Team Page", hasBlog:"Blog/Content", hasTestimonials:"Testimonials", multipleLocations:"Multiple Locations", hasJobsPage:"Hiring/Jobs" };
+                  const isGood = ["hasOnlineBooking","hasLiveChat","hasReviews","hasServiceAgreements","hasPricing","hasPortfolio","hasTeamPage","hasBlog","hasTestimonials","multipleLocations"].includes(key) ? val : !val;
+                  return (
+                    <span key={key} style={{ fontSize:11, padding:"4px 10px", borderRadius:20, background:val?(isGood?"#052e16":"#1c0000"):"#0f172a", color:val?(isGood?"#22c55e":"#ef4444"):"#475569", border:"1px solid "+(val?(isGood?"#22c55e40":"#ef444440"):"#1e293b") }}>
+                      {val ? "✓" : "✗"} {labels[key]}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+
+            {result.leakageFlags && result.leakageFlags.length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#f1f5f9", marginBottom:10 }}>Leakage Risks Identified</div>
+                {result.leakageFlags.map((flag, i) => (
+                  <div key={i} style={{ display:"flex", gap:8, alignItems:"flex-start", marginBottom:6 }}>
+                    <span style={{ color:"#f97316", flexShrink:0, marginTop:1 }}>⚠</span>
+                    <span style={{ fontSize:12, color:"#94a3b8", lineHeight:1.5 }}>{flag}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button onClick={() => onApply(result)} style={{ width:"100%", padding:"14px", background:"#f97316", border:"none", borderRadius:10, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer", letterSpacing:"0.02em" }}>
+            ✓ Apply to Audit — Pre-fill with Scan Results
+          </button>
+        </div>
+      )}
+
+      {!result && !loading && (
+        <div style={{ background:"#0a0f1e", border:"1px solid #1e293b", borderRadius:12, padding:24 }}>
+          <div style={{ fontSize:13, fontWeight:600, color:"#f1f5f9", marginBottom:12 }}>What the scan detects:</div>
+          <div className="ra-2col">
+            {[
+              ["🏢 Company & Industry","Detects business type, size, and service area from website content"],
+              ["📞 Lead Capture Signals","Identifies online booking, live chat, phone-only setups"],
+              ["💰 Pricing & Sales","Flags missing pricing pages, no quote forms, underpricing risk"],
+              ["🔄 Retention Signals","Detects service agreement pages, maintenance programs, reviews"],
+              ["📋 Documentation Gaps","Identifies missing portfolio, case studies, undocumented work risk"],
+              ["📊 Pre-filled Inputs","Auto-populates 10+ audit fields with estimated values based on findings"],
+            ].map(([title, desc]) => (
+              <div key={title} style={{ padding:"12px 14px", background:"#0f172a", borderRadius:8, border:"1px solid #1e293b" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#f1f5f9", marginBottom:4 }}>{title}</div>
+                <div style={{ fontSize:11, color:"#64748b", lineHeight:1.5 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RevAudit() {
-  const [section, setSection] = useState("company");
+  const [section, setSection] = useState("scan");
+  const [scanResult, setScanResult] = useState(null);
   const [preset, setPreset] = useState("electrical");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [company, setCompany] = useState(PRESETS.electrical.company);
@@ -630,6 +832,31 @@ export default function RevAudit() {
     setPreset(key); setCompany(p.company); setDemand(p.demand); setSales(p.sales);
     setMaterials(p.materials); setLabor(p.labor); setExecution(p.execution);
     setBilling(p.billing); setRetention(p.retention); setForecasting(p.forecasting);
+  }, []);
+
+  const handleScanApply = useCallback((result) => {
+    const key = result.presetKey || "electrical";
+    const p = PRESETS[key] || PRESETS.electrical;
+    setPreset(key);
+    setCompany({
+      ...p.company,
+      name: result.companyName || p.company.name,
+      industry: result.industry || p.company.industry,
+      annualRevenue: result.estimatedRevenue || p.company.annualRevenue,
+      employees: result.estimatedEmployees || p.company.employees,
+      serviceArea: result.serviceArea || p.company.serviceArea,
+      primaryChannel: result.primaryChannel || p.company.primaryChannel,
+    });
+    const ei = result.estimatedInputs || {};
+    setDemand({ ...p.demand, ...(ei.missedCallRate && { missedCallRate: ei.missedCallRate }), ...(ei.bookingRate && { bookingRate: ei.bookingRate }), ...(ei.noFollowUpRate && { noFollowUpRate: ei.noFollowUpRate }), ...(ei.leadResponseMinutes && { leadResponseMinutes: ei.leadResponseMinutes }) });
+    setSales({ ...p.sales, ...(ei.quoteCloseRate && { quoteCloseRate: ei.quoteCloseRate }), ...(ei.underpricingRate && { underpricingRate: ei.underpricingRate }) });
+    setMaterials(p.materials);
+    setLabor(p.labor);
+    setExecution(p.execution);
+    setBilling({ ...p.billing, ...(ei.unbilledWorkPct && { unbilledWorkPct: ei.unbilledWorkPct }) });
+    setRetention({ ...p.retention, ...(ei.churnRate && { churnRate: ei.churnRate }), ...(ei.missingReferralRate && { missingReferralRate: ei.missingReferralRate }) });
+    setForecasting(p.forecasting);
+    setSection("company");
   }, []);
 
   const bm = BENCHMARKS[preset] || BENCHMARKS.electrical;
@@ -721,6 +948,7 @@ export default function RevAudit() {
         </div>
 
         <div className="ra-page">
+          {section==="scan" && <WebScanPanel onApply={handleScanApply} />}
           {section==="company" && (
             <div className="ra-section">
               <h2 style={{ fontSize:18, fontWeight:700, color:"#f1f5f9", marginBottom:20, marginTop:0 }}>Company Profile</h2>
