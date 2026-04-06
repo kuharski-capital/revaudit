@@ -840,13 +840,14 @@ export default function RevAudit() {
     setPreset(key);
     setCompany({
       ...p.company,
-      name: result.companyName || p.company.name,
-      industry: result.industry || p.company.industry,
-      annualRevenue: result.estimatedRevenue || p.company.annualRevenue,
-      employees: result.estimatedEmployees || p.company.employees,
-      serviceArea: result.serviceArea || p.company.serviceArea,
-      primaryChannel: result.primaryChannel || p.company.primaryChannel,
+      name: result.companyName && result.companyName !== "Unknown" ? result.companyName : p.company.name,
+      industry: result.industry && result.industry !== "Unknown" ? result.industry : p.company.industry,
+      annualRevenue: result.estimatedRevenue > 0 ? result.estimatedRevenue : p.company.annualRevenue,
+      employees: result.estimatedEmployees > 0 ? result.estimatedEmployees : p.company.employees,
+      serviceArea: result.serviceArea && result.serviceArea !== "Unknown" ? result.serviceArea : p.company.serviceArea,
+      primaryChannel: result.primaryChannel && result.primaryChannel !== "Unknown" ? result.primaryChannel : p.company.primaryChannel,
     });
+    console.log("Applying scan result:", JSON.stringify(result));
     const ei = result.estimatedInputs || {};
     setDemand({ ...p.demand, ...(ei.missedCallRate && { missedCallRate: ei.missedCallRate }), ...(ei.bookingRate && { bookingRate: ei.bookingRate }), ...(ei.noFollowUpRate && { noFollowUpRate: ei.noFollowUpRate }), ...(ei.leadResponseMinutes && { leadResponseMinutes: ei.leadResponseMinutes }) });
     setSales({ ...p.sales, ...(ei.quoteCloseRate && { quoteCloseRate: ei.quoteCloseRate }), ...(ei.underpricingRate && { underpricingRate: ei.underpricingRate }) });
