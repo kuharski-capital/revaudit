@@ -690,7 +690,7 @@ Return this exact JSON structure:
       const parsed = JSON.parse(clean);
       setResult(parsed);
     } catch (e) {
-      setError("Could not analyze this website. Try entering just the domain (e.g. acmeplumbing.com) or check the URL and try again.");
+      setError("Debug: " + JSON.stringify(e.message) + " | Could not analyze this website. Try entering just the domain (e.g. acmeplumbing.com) or check the URL and try again.");
     }
     setLoading(false);
   };
