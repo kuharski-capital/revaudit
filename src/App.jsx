@@ -81,6 +81,16 @@ const BENCHMARKS = {
     billing: { unbilledWorkPct: 4, underbillingPct: 3, invoiceLagDays: 2 },
     retention: { churnRate: 32, maintenanceAttachRate: 14, missedUpsellRate: 38, missingReferralRate: 54 },
     forecasting: { forecastAccuracy: 56, technicianUtilization: 62, scheduleUtilization: 64 }
+  },
+  greatpnw: {
+    demand: { missedCallRate: 3, leadResponseMinutes: 360, bookingRate: 38, noFollowUpRate: 72, capacityDeclineRate: 4 },
+    sales: { quoteCloseRate: 38, underpricingRate: 10, avgUnderpricingPct: 7, scopeCreepFreq: 8, scopeCreepImpact: 6 },
+    materials: { wasteRate: 5, reBuyRate: 4, shrinkageRate: 1, overstockRate: 22 },
+    labor: { laborOverrunPct: 9, reworkRatePct: 5, technicianUtilization: 63 },
+    execution: { returnVisitRate: 19, lateJobPct: 6, incompleteJobRate: 2, undocumentedRate: 9 },
+    billing: { unbilledWorkPct: 2, underbillingPct: 2, invoiceLagDays: 2 },
+    retention: { churnRate: 29, maintenanceAttachRate: 18, missedUpsellRate: 44, missingReferralRate: 64 },
+    forecasting: { forecastAccuracy: 50, technicianUtilization: 63, scheduleUtilization: 66 }
   }
 };
 
@@ -150,6 +160,17 @@ const PRESETS = {
     billing: { jobsCompletedPerMonth: 12, unbilledWorkPct: 22, avgInvoiceValue: 22000, invoiceLagDays: 42, underbillingPct: 14, unapprovedDiscountsPerMonth: 5200, unbilledChangeOrders: 3, avgUnbilledChangeOrderValue: 4200, writeOffsPerMonth: 4800 },
     retention: { activeCustomers: 145, repeatRate: 62, churnRate: 24, maintenanceAttachRate: 12, eligibleForAgreements: 95, avgAgreementValue: 8400, postJobFollowUpRate: 34, reviewRequestRate: 28, upsellConversionRate: 16, missedUpsellRate: 48, avgUpsellValue: 18000, avgCLTV: 145000, referralCaptureRate: 18, missingReferralRate: 56, avgReferralJobValue: 22000, referralConversionFactor: 0.32 },
     forecasting: { forecastAccuracy: 52, scheduleUtilization: 60, revenueVolatility: 4, rescheduledJobs: 3, avgRescheduleCost: 2200, capacityPlanningAccuracy: 48, technicianUtilization: 62, coordinationScore: 5, jobsLostToSchedulingGaps: 2, avgLostScheduledJobValue: 22000, availableTechHours: 3800, revenuePerTechHour: 210 }
+  },
+  greatpnw: {
+    company: { name: "The Great PNW", industry: "Lifestyle Apparel Brand", annualRevenue: 2600000, grossMargin: 58, employees: 11, fieldTechs: 0, officeStaff: 11, avgJobSize: 55, jobsPerMonth: 3500, salesCycleDays: 1, primaryChannel: "E-commerce / Wholesale (70+ accounts)", serviceArea: "National (Pacific Northwest HQ)" },
+    demand: { leadsPerMonth: 9200, missedCallRate: 3, leadResponseMinutes: 360, bookingRate: 38, noFollowUpRate: 72, capacityDeclineRate: 4, avgJobValue: 55 },
+    sales: { estimatesPerMonth: 9200, quoteCloseRate: 38, avgQuotedJobValue: 58, underpricingRate: 10, avgUnderpricingPct: 7, missedChangeOrders: 0, avgMissedChangeOrderValue: 0, scopeCreepFreq: 8, scopeCreepImpact: 6 },
+    materials: { monthlyMaterialSpend: 58000, wasteRate: 5, reBuyRate: 4, shrinkageRate: 1, overstockRate: 22, returnLossPerMonth: 7800, shortageJobsPerMonth: 62, avgShortageImpact: 85 },
+    labor: { totalLaborHours: 1760, loadedLaborCostPerHour: 38, laborOverrunPct: 9, reworkRatePct: 5, avgReworkHours: 1.5, idleWaitHours: 180, travelInefficHours: 45, delayedJobs: 0, avgHoursLostPerDelay: 0 },
+    execution: { jobsPerMonth: 3500, returnVisitRate: 19, avgReturnVisitCost: 16, lateJobPct: 6, avgDelayedJobCost: 18, incompleteJobRate: 2, incompleteJobCost: 48, callbacksPerMonth: 145, avgCallbackCost: 11, undocumentedRate: 9, revenueLeakagePerUndocumented: 42, safetyComplianceCosts: 380 },
+    billing: { jobsCompletedPerMonth: 3420, unbilledWorkPct: 2, avgInvoiceValue: 55, invoiceLagDays: 2, underbillingPct: 2, unapprovedDiscountsPerMonth: 4200, unbilledChangeOrders: 4, avgUnbilledChangeOrderValue: 380, writeOffsPerMonth: 1800 },
+    retention: { activeCustomers: 5200, repeatRate: 36, churnRate: 29, maintenanceAttachRate: 18, eligibleForAgreements: 2100, avgAgreementValue: 165, postJobFollowUpRate: 28, reviewRequestRate: 32, upsellConversionRate: 14, missedUpsellRate: 44, avgUpsellValue: 42, avgCLTV: 480, referralCaptureRate: 12, missingReferralRate: 64, avgReferralJobValue: 55, referralConversionFactor: 0.25 },
+    forecasting: { forecastAccuracy: 50, scheduleUtilization: 66, revenueVolatility: 5, rescheduledJobs: 14, avgRescheduleCost: 220, capacityPlanningAccuracy: 46, technicianUtilization: 63, coordinationScore: 5, jobsLostToSchedulingGaps: 24, avgLostScheduledJobValue: 55, availableTechHours: 1760, revenuePerTechHour: 52 }
   },
   retail: {
     company: { name: "Main Street Retail Co.", industry: "Retail Store", annualRevenue: 2200000, grossMargin: 44, employees: 16, fieldTechs: 0, officeStaff: 16, avgJobSize: 85, jobsPerMonth: 2100, salesCycleDays: 0, primaryChannel: "Walk-in / E-commerce", serviceArea: "Local / Online" },
@@ -632,6 +653,7 @@ const PRESET_BTNS = [
   {key:"realestate",label:"🏡 Real Estate"},
   {key:"financial",label:"💼 Financial Firm"},
   {key:"retail",label:"🛒 Retail Store"},
+  {key:"greatpnw",label:"🌲 The Great PNW"},
 ];
 
 
