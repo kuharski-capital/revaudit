@@ -71,6 +71,16 @@ const BENCHMARKS = {
     billing: { unbilledWorkPct: 22, underbillingPct: 14, invoiceLagDays: 42 },
     retention: { churnRate: 24, maintenanceAttachRate: 12, missedUpsellRate: 48, missingReferralRate: 56 },
     forecasting: { forecastAccuracy: 52, technicianUtilization: 62, scheduleUtilization: 60 }
+  },
+  retail: {
+    demand: { missedCallRate: 5, leadResponseMinutes: 8, bookingRate: 72, noFollowUpRate: 38, capacityDeclineRate: 4 },
+    sales: { quoteCloseRate: 68, underpricingRate: 14, avgUnderpricingPct: 8, scopeCreepFreq: 12, scopeCreepImpact: 5 },
+    materials: { wasteRate: 4, reBuyRate: 6, shrinkageRate: 3, overstockRate: 18 },
+    labor: { laborOverrunPct: 8, reworkRatePct: 4, technicianUtilization: 62 },
+    execution: { returnVisitRate: 12, lateJobPct: 8, incompleteJobRate: 3, undocumentedRate: 14 },
+    billing: { unbilledWorkPct: 4, underbillingPct: 3, invoiceLagDays: 2 },
+    retention: { churnRate: 32, maintenanceAttachRate: 14, missedUpsellRate: 38, missingReferralRate: 54 },
+    forecasting: { forecastAccuracy: 56, technicianUtilization: 62, scheduleUtilization: 64 }
   }
 };
 
@@ -140,6 +150,17 @@ const PRESETS = {
     billing: { jobsCompletedPerMonth: 12, unbilledWorkPct: 22, avgInvoiceValue: 22000, invoiceLagDays: 42, underbillingPct: 14, unapprovedDiscountsPerMonth: 5200, unbilledChangeOrders: 3, avgUnbilledChangeOrderValue: 4200, writeOffsPerMonth: 4800 },
     retention: { activeCustomers: 145, repeatRate: 62, churnRate: 24, maintenanceAttachRate: 12, eligibleForAgreements: 95, avgAgreementValue: 8400, postJobFollowUpRate: 34, reviewRequestRate: 28, upsellConversionRate: 16, missedUpsellRate: 48, avgUpsellValue: 18000, avgCLTV: 145000, referralCaptureRate: 18, missingReferralRate: 56, avgReferralJobValue: 22000, referralConversionFactor: 0.32 },
     forecasting: { forecastAccuracy: 52, scheduleUtilization: 60, revenueVolatility: 4, rescheduledJobs: 3, avgRescheduleCost: 2200, capacityPlanningAccuracy: 48, technicianUtilization: 62, coordinationScore: 5, jobsLostToSchedulingGaps: 2, avgLostScheduledJobValue: 22000, availableTechHours: 3800, revenuePerTechHour: 210 }
+  },
+  retail: {
+    company: { name: "Main Street Retail Co.", industry: "Retail Store", annualRevenue: 2200000, grossMargin: 44, employees: 16, fieldTechs: 0, officeStaff: 16, avgJobSize: 85, jobsPerMonth: 2100, salesCycleDays: 0, primaryChannel: "Walk-in / E-commerce", serviceArea: "Local / Online" },
+    demand: { leadsPerMonth: 3200, missedCallRate: 5, leadResponseMinutes: 8, bookingRate: 72, noFollowUpRate: 38, capacityDeclineRate: 4, avgJobValue: 85 },
+    sales: { estimatesPerMonth: 2100, quoteCloseRate: 68, avgQuotedJobValue: 95, underpricingRate: 14, avgUnderpricingPct: 8, missedChangeOrders: 0, avgMissedChangeOrderValue: 0, scopeCreepFreq: 12, scopeCreepImpact: 5 },
+    materials: { monthlyMaterialSpend: 82000, wasteRate: 4, reBuyRate: 6, shrinkageRate: 3, overstockRate: 18, returnLossPerMonth: 4200, shortageJobsPerMonth: 28, avgShortageImpact: 320 },
+    labor: { totalLaborHours: 2400, loadedLaborCostPerHour: 24, laborOverrunPct: 8, reworkRatePct: 4, avgReworkHours: 1.5, idleWaitHours: 220, travelInefficHours: 30, delayedJobs: 0, avgHoursLostPerDelay: 0 },
+    execution: { jobsPerMonth: 2100, returnVisitRate: 12, avgReturnVisitCost: 28, lateJobPct: 8, avgDelayedJobCost: 45, incompleteJobRate: 3, incompleteJobCost: 65, callbacksPerMonth: 18, avgCallbackCost: 35, undocumentedRate: 14, revenueLeakagePerUndocumented: 55, safetyComplianceCosts: 800 },
+    billing: { jobsCompletedPerMonth: 2050, unbilledWorkPct: 4, avgInvoiceValue: 85, invoiceLagDays: 2, underbillingPct: 3, unapprovedDiscountsPerMonth: 3800, unbilledChangeOrders: 0, avgUnbilledChangeOrderValue: 0, writeOffsPerMonth: 1600 },
+    retention: { activeCustomers: 1800, repeatRate: 42, churnRate: 32, maintenanceAttachRate: 14, eligibleForAgreements: 420, avgAgreementValue: 280, postJobFollowUpRate: 18, reviewRequestRate: 22, upsellConversionRate: 18, missedUpsellRate: 38, avgUpsellValue: 42, avgCLTV: 680, referralCaptureRate: 12, missingReferralRate: 54, avgReferralJobValue: 85, referralConversionFactor: 0.22 },
+    forecasting: { forecastAccuracy: 56, scheduleUtilization: 64, revenueVolatility: 4, rescheduledJobs: 8, avgRescheduleCost: 95, capacityPlanningAccuracy: 52, technicianUtilization: 62, coordinationScore: 5, jobsLostToSchedulingGaps: 22, avgLostScheduledJobValue: 85, availableTechHours: 2400, revenuePerTechHour: 38 }
   },
   construction: {
     company: { name: "Summit Custom Homes", industry: "Custom Home Construction", annualRevenue: 8500000, grossMargin: 22, employees: 32, fieldTechs: 24, officeStaff: 8, avgJobSize: 680000, jobsPerMonth: 1, salesCycleDays: 90, primaryChannel: "Referrals / Showroom", serviceArea: "Regional" },
@@ -610,6 +631,7 @@ const PRESET_BTNS = [
   {key:"construction",label:"🏠 Custom Homes"},
   {key:"realestate",label:"🏡 Real Estate"},
   {key:"financial",label:"💼 Financial Firm"},
+  {key:"retail",label:"🛒 Retail Store"},
 ];
 
 
@@ -634,7 +656,7 @@ Return this exact JSON structure:
 {
   "companyName": "detected company name",
   "industry": "detected industry (be specific: e.g. Electrical Contractor, HVAC Company, Real Estate Firm, Financial Advisory, etc.)",
-  "presetKey": "one of: electrical, hvac, plumbing, advertising, construction, realestate, financial (pick closest match)",
+  "presetKey": "one of: electrical, hvac, plumbing, advertising, construction, realestate, financial, retail (pick closest match)",
   "estimatedRevenue": number in dollars (estimate annual revenue based on size signals),
   "estimatedEmployees": number,
   "serviceArea": "detected service area or region",
@@ -671,26 +693,26 @@ Return this exact JSON structure:
   "summary": "2-3 sentence plain English summary of what you found and the biggest revenue leakage risks"
 }`;
 
-      const response = await fetch("/api/scan", {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
-          
+          tools: [{ type: "web_search_20250305", name: "web_search" }],
           messages: [{ role: "user", content: prompt }]
         })
       });
       const data = await response.json();
-      const text = (data.content || data.completion || [])
-        .filter(b => b && b.type === "text")
+      const text = data.content
+        .filter(b => b.type === "text")
         .map(b => b.text)
-        .join("") || (typeof data.content === "string" ? data.content : JSON.stringify(data));
+        .join("");
       const clean = text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
       setResult(parsed);
     } catch (e) {
-      setError("Debug: " + JSON.stringify(e.message) + " | Could not analyze this website. Try entering just the domain (e.g. acmeplumbing.com) or check the URL and try again.");
+      setError("Could not analyze this website. Try entering just the domain (e.g. acmeplumbing.com) or check the URL and try again.");
     }
     setLoading(false);
   };
@@ -757,7 +779,7 @@ Return this exact JSON structure:
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:12, fontWeight:600, color:"#f1f5f9", marginBottom:10 }}>Website Signals Detected</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {Object.entries(result.signals || {}).map(([key, val]) => {
+                {Object.entries(result.signals).map(([key, val]) => {
                   const labels = { hasOnlineBooking:"Online Booking", hasLiveChat:"Live Chat", phoneOnly:"Phone Only", hasReviews:"Reviews Present", hasServiceAgreements:"Service Agreements", hasPricing:"Pricing Page", hasPortfolio:"Portfolio/Cases", hasTeamPage:"Team Page", hasBlog:"Blog/Content", hasTestimonials:"Testimonials", multipleLocations:"Multiple Locations", hasJobsPage:"Hiring/Jobs" };
                   const isGood = ["hasOnlineBooking","hasLiveChat","hasReviews","hasServiceAgreements","hasPricing","hasPortfolio","hasTeamPage","hasBlog","hasTestimonials","multipleLocations"].includes(key) ? val : !val;
                   return (
@@ -840,14 +862,13 @@ export default function RevAudit() {
     setPreset(key);
     setCompany({
       ...p.company,
-      name: result.companyName && result.companyName !== "Unknown" ? result.companyName : p.company.name,
-      industry: result.industry && result.industry !== "Unknown" ? result.industry : p.company.industry,
-      annualRevenue: result.estimatedRevenue > 0 ? result.estimatedRevenue : p.company.annualRevenue,
-      employees: result.estimatedEmployees > 0 ? result.estimatedEmployees : p.company.employees,
-      serviceArea: result.serviceArea && result.serviceArea !== "Unknown" ? result.serviceArea : p.company.serviceArea,
-      primaryChannel: result.primaryChannel && result.primaryChannel !== "Unknown" ? result.primaryChannel : p.company.primaryChannel,
+      name: result.companyName || p.company.name,
+      industry: result.industry || p.company.industry,
+      annualRevenue: result.estimatedRevenue || p.company.annualRevenue,
+      employees: result.estimatedEmployees || p.company.employees,
+      serviceArea: result.serviceArea || p.company.serviceArea,
+      primaryChannel: result.primaryChannel || p.company.primaryChannel,
     });
-    console.log("Applying scan result:", JSON.stringify(result));
     const ei = result.estimatedInputs || {};
     setDemand({ ...p.demand, ...(ei.missedCallRate && { missedCallRate: ei.missedCallRate }), ...(ei.bookingRate && { bookingRate: ei.bookingRate }), ...(ei.noFollowUpRate && { noFollowUpRate: ei.noFollowUpRate }), ...(ei.leadResponseMinutes && { leadResponseMinutes: ei.leadResponseMinutes }) });
     setSales({ ...p.sales, ...(ei.quoteCloseRate && { quoteCloseRate: ei.quoteCloseRate }), ...(ei.underpricingRate && { underpricingRate: ei.underpricingRate }) });
