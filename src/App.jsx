@@ -1,117 +1,184 @@
 import { useState, useCallback } from "react";
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&family=DM+Mono:wght@400;500&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font-family: 'DM Sans', -apple-system, sans-serif;
-  background: #080B14;
-  color: #F0F0F0;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #EBF0F8;
+  color: #0D0D0D;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Layout ── */
 .root {
   min-height: 100dvh;
-  background: linear-gradient(160deg, #0C0E1A 0%, #080B14 50%, #0A0A0F 100%);
+  background: linear-gradient(160deg, #DDE8F5 0%, #EBF0F8 50%, #E4ECF6 100%);
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  padding: 0 16px;
 }
 .wrap {
   width: 100%;
-  max-width: 480px;
-  padding: 0 20px 100px;
-  position: relative;
+  max-width: 520px;
+  padding-bottom: 80px;
 }
-/* Header */
-.header { padding: 52px 0 40px; }
-.kc-label { font-size: 10px; color: #2A2E45; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 500; margin-bottom: 8px; }
-.app-title { font-size: 26px; font-weight: 800; color: #F0F0F0; letter-spacing: -0.03em; }
-.app-sub { font-size: 13px; color: #3A3F55; margin-top: 4px; }
-/* Progress */
-.progress-wrap { margin-bottom: 32px; }
-.progress-track { height: 2px; background: #12162A; border-radius: 1px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #F97316, #FB923C); border-radius: 1px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
-.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; color: #3A3F55; }
-/* Cards */
+
+/* ── Header ── */
+.header { padding: 56px 0 36px; }
+.kc-label {
+  font-size: 11px; color: #B0BDD0; text-transform: uppercase;
+  letter-spacing: 0.18em; font-weight: 600; margin-bottom: 10px;
+}
+.app-title {
+  font-size: 30px; font-weight: 900; color: #0D0D0D;
+  letter-spacing: -0.04em; line-height: 1;
+}
+.app-sub { font-size: 14px; color: #8A9AB5; margin-top: 6px; font-weight: 400; }
+
+/* ── Progress ── */
+.progress-wrap { margin-bottom: 28px; }
+.progress-track {
+  height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: #0066FF;
+  border-radius: 2px; transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+.progress-label {
+  display: flex; justify-content: space-between;
+  margin-bottom: 10px; font-size: 12px; color: #A0ADC0; font-weight: 500;
+}
+
+/* ── Cards ── */
 .card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: #FFFFFF;
   border-radius: 24px;
   padding: 28px;
-  margin-bottom: 10px;
-  backdrop-filter: blur(8px);
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.04);
 }
-.card-sm { border-radius: 18px; padding: 18px 20px; }
-.card-accent {
-  background: linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.04) 100%);
-  border-color: rgba(249,115,22,0.2);
+.card-sm { border-radius: 20px; padding: 22px 24px; }
+.card-flat { box-shadow: none; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); }
+.card-hero {
+  background: #0D0D0D;
+  border-radius: 24px;
+  padding: 32px 28px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
 }
-/* Hero number */
+.card-hero::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(0,102,255,0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Hero number ── */
+.hero-eyebrow { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 10px; }
+.hero-company { font-size: 13px; color: #444; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 .hero-number {
-  font-size: 60px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
+  font-size: 68px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
   font-family: 'DM Mono', monospace;
-  background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0066FF;
 }
-.hero-sub { font-size: 13px; color: #5A607A; margin-top: 8px; }
-/* Stat row */
-.stat-row { display: flex; gap: 0; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
-.stat-item { flex: 1; text-align: center; }
-.stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.05); }
-.stat-val { font-size: 18px; font-weight: 700; font-family: 'DM Mono', monospace; }
-.stat-label { font-size: 10px; color: #3A3F55; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
-/* Inputs */
-.field-label { font-size: 11px; font-weight: 500; color: #4A5070; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; display: block; }
+.hero-sub {
+  font-size: 14px; color: #666; margin-top: 12px; font-weight: 400;
+}
+
+/* ── Stat row ── */
+.stat-row {
+  display: flex; margin-top: 24px; padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.stat-item { flex: 1; padding: 0 4px; }
+.stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; }
+.stat-val {
+  font-size: 22px; font-weight: 800; font-family: 'DM Mono', monospace;
+  letter-spacing: -0.03em; color: #FFF;
+}
+.stat-label {
+  font-size: 10px; color: #555; text-transform: uppercase;
+  letter-spacing: 0.1em; margin-top: 4px; font-weight: 600;
+}
+
+/* ── Inputs ── */
+.field-label {
+  font-size: 12px; font-weight: 700; color: #8A9AB5;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block;
+}
 .input-wrap { position: relative; }
-.input-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #3A3F55; pointer-events: none; font-family: 'DM Mono', monospace; }
+.input-prefix {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; color: #A0ADC0; pointer-events: none; font-family: 'DM Mono', monospace;
+}
 .ra-input {
   width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: #F4F7FB;
+  border: 1.5px solid #E4EAF4;
   border-radius: 14px;
-  padding: 14px 16px;
-  color: #F0F0F0;
+  padding: 15px 18px;
+  color: #0D0D0D;
   font-size: 16px;
   font-family: 'DM Mono', monospace;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
+  font-weight: 500;
 }
-.ra-input:focus { border-color: rgba(249,115,22,0.5); background: rgba(249,115,22,0.04); }
-.ra-input.has-prefix { padding-left: 26px; }
-.ra-input.text-input { font-family: 'DM Sans', sans-serif; }
-.rev-hint { font-size: 12px; color: #F97316; margin-top: 6px; font-family: 'DM Mono', monospace; }
-/* Industry grid */
-.industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.ra-input:focus { border-color: #0066FF; background: #FFF; }
+.ra-input.has-prefix { padding-left: 28px; }
+.ra-input.text-input { font-family: 'DM Sans', sans-serif; font-weight: 500; }
+.ra-input::placeholder { color: #B0BDD0; }
+.rev-hint { font-size: 13px; color: #0066FF; margin-top: 8px; font-family: 'DM Mono', monospace; font-weight: 600; }
+
+/* ── Industry grid ── */
+.industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
 .ind-btn {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: #F4F7FB;
+  border: 1.5px solid #E4EAF4;
   border-radius: 16px;
-  padding: 16px 8px 14px;
+  padding: 16px 6px 14px;
   text-align: center;
   cursor: pointer;
   transition: all 0.18s;
   font-family: inherit;
 }
-.ind-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
-.ind-btn.sel { background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.35); }
-.ind-icon { font-size: 22px; display: block; margin-bottom: 6px; }
-.ind-label { font-size: 10px; font-weight: 600; color: #A0A8C0; display: block; line-height: 1.2; }
-.ind-btn.sel .ind-label { color: #F97316; }
-/* Question */
-.q-category { font-size: 10px; font-weight: 600; color: #F97316; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.q-category::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #F97316; }
-.q-text { font-size: 20px; font-weight: 700; color: #F0F0F0; line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 28px; }
-.choices { display: flex; flex-direction: column; gap: 8px; }
+.ind-btn:hover { background: #EEF2FA; border-color: #CDD5E8; }
+.ind-btn.sel { background: #EEF4FF; border-color: #0066FF; }
+.ind-icon { font-size: 22px; display: block; margin-bottom: 7px; }
+.ind-label {
+  font-size: 9px; font-weight: 700; color: #A0ADC0; display: block;
+  line-height: 1.2; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.ind-btn.sel .ind-label { color: #0066FF; }
+
+/* ── Question ── */
+.q-step-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #0D0D0D; color: #FFF; border-radius: 20px;
+  padding: 6px 14px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px;
+}
+.q-category-dot { width: 6px; height: 6px; border-radius: 50%; background: #0066FF; flex-shrink: 0; }
+.q-text {
+  font-size: 22px; font-weight: 800; color: #0D0D0D;
+  line-height: 1.25; letter-spacing: -0.03em; margin-bottom: 28px;
+}
+.choices { display: flex; flex-direction: column; gap: 10px; }
 .choice {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: #F4F7FB;
+  border: 1.5px solid #E4EAF4;
   border-radius: 16px;
-  padding: 16px 18px;
+  padding: 18px 18px;
   cursor: pointer;
   transition: all 0.18s;
   text-align: left;
@@ -120,121 +187,207 @@ body {
   align-items: center;
   gap: 14px;
 }
-.choice:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
-.choice.sel { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.4); }
+.choice:hover { background: #EEF2FA; border-color: #CDD5E8; }
+.choice.sel { background: #EEF4FF; border-color: #0066FF; }
 .choice-dot {
-  width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; transition: all 0.18s;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #D0D9E8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s; background: #FFF;
 }
-.choice.sel .choice-dot { background: #F97316; border-color: #F97316; }
+.choice.sel .choice-dot {
+  background: #0066FF; border-color: #0066FF;
+  box-shadow: 0 0 0 3px rgba(0,102,255,0.15);
+}
 .choice-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: white; opacity: 0; transition: opacity 0.18s; }
 .choice.sel .choice-dot-inner { opacity: 1; }
 .choice-text { flex: 1; }
-.choice-label { font-size: 14px; font-weight: 600; color: #D0D5E8; display: block; margin-bottom: 2px; }
-.choice.sel .choice-label { color: #F0F0F0; }
-.choice-desc { font-size: 12px; color: #4A5070; line-height: 1.4; }
-.choice.sel .choice-desc { color: #8A95B0; }
-/* Buttons */
+.choice-label { font-size: 15px; font-weight: 700; color: #4A5568; display: block; margin-bottom: 3px; letter-spacing: -0.01em; }
+.choice.sel .choice-label { color: #0D0D0D; }
+.choice-desc { font-size: 13px; color: #A0ADC0; line-height: 1.4; font-weight: 400; }
+.choice.sel .choice-desc { color: #5068A0; }
+
+/* ── Buttons ── */
 .btn-primary {
   width: 100%;
-  padding: 17px;
-  background: linear-gradient(135deg, #F97316 0%, #EA6A00 100%);
+  padding: 18px;
+  background: #0D0D0D;
   border: none;
   border-radius: 16px;
-  color: #fff;
+  color: #FFF;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   font-family: inherit;
   letter-spacing: -0.01em;
   transition: opacity 0.15s, transform 0.1s;
-  box-shadow: 0 8px 24px rgba(249,115,22,0.25);
 }
-.btn-primary:hover { opacity: 0.92; }
+.btn-primary:hover { opacity: 0.85; }
 .btn-primary:active { transform: scale(0.99); }
-.btn-primary:disabled { background: #1A1E30; color: #3A3F55; cursor: not-allowed; box-shadow: none; }
+.btn-primary:disabled { background: #E4EAF4; color: #A0ADC0; cursor: not-allowed; }
+.btn-orange {
+  background: #0066FF;
+  color: #FFF;
+}
+.btn-orange:hover { opacity: 0.88; }
 .btn-ghost {
-  padding: 13px 20px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  color: #4A5070;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 16px 20px;
+  background: #FFF;
+  border: 1.5px solid #E4EAF4;
+  border-radius: 16px;
+  color: #8A9AB5;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
-.btn-ghost:hover { border-color: rgba(255,255,255,0.14); color: #8A95B0; }
+.btn-ghost:hover { border-color: #CDD5E8; color: #4A5568; }
 .btn-row { display: flex; gap: 10px; margin-top: 16px; }
-/* Loading */
-.loading-screen { text-align: center; padding: 80px 0; }
-.loading-icon { font-size: 36px; margin-bottom: 20px; animation: pulse 1.8s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }
-.loading-title { font-size: 20px; font-weight: 700; color: #F0F0F0; margin-bottom: 8px; letter-spacing: -0.02em; }
-.loading-sub { font-size: 13px; color: #3A3F55; margin-bottom: 32px; }
-.loading-steps { display: flex; flex-direction: column; gap: 10px; max-width: 260px; margin: 0 auto; }
-.loading-step { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #3A3F55; }
-.loading-step.done { color: #22C55E; }
-.step-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-/* Gap cards */
-.gap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.gap-category-pill {
-  font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
-  text-transform: uppercase; letter-spacing: 0.06em;
-}
-.gap-amount { font-size: 22px; font-weight: 800; font-family: 'DM Mono', monospace; text-align: right; }
-.gap-amount-label { font-size: 10px; color: #3A3F55; text-align: right; margin-top: 1px; }
-.gap-answer { font-size: 12px; color: #4A5070; margin-bottom: 12px; }
-.gap-answer strong { color: #8A95B0; font-weight: 500; }
-.fix-row { display: flex; gap: 8px; margin-bottom: 6px; }
-.fix-check { color: #22C55E; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
-.fix-text { font-size: 12px; color: #5A6080; line-height: 1.5; }
-/* Insight cards */
-.insight-stat { font-size: 15px; font-weight: 700; color: #F0F0F0; line-height: 1.4; margin-bottom: 5px; }
-.insight-source { font-size: 10px; color: #F97316; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
-.insight-context { font-size: 12px; color: #4A5070; line-height: 1.6; }
-/* Opportunity banner */
-.opp-banner {
-  background: linear-gradient(135deg, rgba(249,115,22,0.14) 0%, rgba(249,115,22,0.06) 100%);
-  border: 1px solid rgba(249,115,22,0.25);
-  border-radius: 18px;
-  padding: 20px 22px;
-  margin-bottom: 10px;
-}
-.opp-label { font-size: 10px; color: #F97316; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 6px; }
-.opp-text { font-size: 14px; color: #D0D5E8; line-height: 1.6; }
-/* CTA card */
-.cta-card {
-  background: linear-gradient(135deg, rgba(249,115,22,0.1) 0%, rgba(249,115,22,0.03) 100%);
-  border: 1px solid rgba(249,115,22,0.18);
+
+/* ── Intro card ── */
+.intro-card {
+  background: #0D0D0D;
   border-radius: 24px;
   padding: 32px 28px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.intro-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,102,255,0.15) 0%, transparent 65%);
+  pointer-events: none;
+}
+.intro-eyebrow {
+  font-size: 11px; color: #0066FF; text-transform: uppercase;
+  letter-spacing: 0.14em; font-weight: 700; margin-bottom: 12px;
+}
+.intro-headline {
+  font-size: 28px; font-weight: 900; color: #FFF;
+  line-height: 1.15; letter-spacing: -0.04em; margin-bottom: 14px;
+}
+.intro-body { font-size: 14px; color: #555; line-height: 1.7; font-weight: 400; }
+
+/* ── Loading ── */
+.loading-screen { text-align: center; padding: 80px 0; }
+.loading-icon { font-size: 40px; margin-bottom: 24px; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.loading-title { font-size: 24px; font-weight: 900; color: #0D0D0D; margin-bottom: 8px; letter-spacing: -0.03em; }
+.loading-sub { font-size: 14px; color: #A0ADC0; margin-bottom: 40px; }
+.loading-steps { display: flex; flex-direction: column; gap: 14px; max-width: 260px; margin: 0 auto; }
+.loading-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #C0CAD8; font-weight: 500; }
+.loading-step.done { color: #22A05A; }
+.step-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ── Gap cards ── */
+.gap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.gap-category-pill {
+  font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.gap-amount { font-size: 26px; font-weight: 900; font-family: 'DM Mono', monospace; text-align: right; letter-spacing: -0.04em; }
+.gap-amount-label {
+  font-size: 10px; color: #A0ADC0; text-align: right; margin-top: 2px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.gap-answer { font-size: 13px; color: #A0ADC0; margin-bottom: 14px; font-weight: 400; }
+.gap-answer strong { color: #4A5568; font-weight: 600; }
+.fix-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.fix-check { color: #22A05A; font-size: 13px; flex-shrink: 0; font-weight: 700; }
+.fix-text { font-size: 13px; color: #8A9AB5; line-height: 1.5; font-weight: 400; }
+
+/* ── Insight cards ── */
+.insight-stat { font-size: 16px; font-weight: 700; color: #0D0D0D; line-height: 1.4; margin-bottom: 6px; letter-spacing: -0.01em; }
+.insight-source { font-size: 11px; color: #0066FF; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+.insight-context { font-size: 13px; color: #8A9AB5; line-height: 1.6; }
+
+/* ── Opportunity banner ── */
+.opp-banner {
+  background: #0D0D0D;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.opp-banner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,102,255,0.6), transparent);
+}
+.opp-label { font-size: 11px; color: #0066FF; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; margin-bottom: 8px; }
+.opp-text { font-size: 15px; color: #CCC; line-height: 1.6; font-weight: 400; }
+
+/* ── CTA card ── */
+.cta-card {
+  background: #FFF;
+  border-radius: 24px;
+  padding: 36px 28px;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
 }
-.cta-price { font-size: 36px; font-weight: 800; font-family: 'DM Mono', monospace; color: #F0F0F0; letter-spacing: -0.03em; }
-.cta-price-sub { font-size: 13px; color: #4A5070; margin-top: 4px; }
-.cta-features { display: flex; flex-direction: column; gap: 8px; margin: 20px 0 24px; text-align: left; }
-.cta-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5A6080; }
-.cta-feature::before { content: '✓'; color: #22C55E; font-weight: 700; flex-shrink: 0; }
-.cta-contact { font-size: 11px; color: #2A2E45; margin-top: 12px; }
-/* Section title */
-.section-label { font-size: 11px; font-weight: 600; color: #3A3F55; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; padding-left: 2px; }
-/* Divider */
-.divider { height: 1px; background: rgba(255,255,255,0.04); margin: 32px 0; }
-/* Setup layout */
-.setup-field { margin-bottom: 22px; }
-/* Responsive */
+.cta-price {
+  font-size: 52px; font-weight: 900; font-family: 'DM Mono', monospace;
+  color: #0D0D0D; letter-spacing: -0.05em; line-height: 1;
+}
+.cta-price-sub { font-size: 13px; color: #A0ADC0; margin-top: 6px; font-weight: 400; }
+.cta-features { display: flex; flex-direction: column; gap: 12px; margin: 28px 0 32px; text-align: left; }
+.cta-feature { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #4A5568; font-weight: 400; }
+.cta-check {
+  width: 22px; height: 22px; border-radius: 50%; background: #EDFBF2;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px; font-weight: 700; color: #22A05A;
+}
+.cta-contact { font-size: 12px; color: #C0CAD8; margin-top: 14px; font-weight: 400; }
+
+/* ── Section label ── */
+.section-label {
+  font-size: 11px; font-weight: 700; color: #A0ADC0;
+  text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 14px; padding-left: 2px;
+}
+
+/* ── Divider ── */
+.divider { height: 1px; background: rgba(0,0,0,0.06); margin: 36px 0; }
+
+/* ── Setup ── */
+.setup-field { margin-bottom: 26px; }
+
+/* ── Desktop layout ── */
+@media (min-width: 768px) {
+  .root { padding: 0 32px; }
+  .wrap { max-width: 540px; }
+  .header { padding: 72px 0 48px; }
+  .card { padding: 36px; }
+  .card-sm { padding: 28px; }
+  .card-hero { padding: 40px 36px; }
+  .intro-card { padding: 40px 36px; }
+  .cta-card { padding: 44px 40px; }
+  .hero-number { font-size: 80px; }
+  .q-text { font-size: 24px; }
+  .choice { padding: 20px 22px; }
+  .choice-label { font-size: 16px; }
+  .choice-desc { font-size: 14px; }
+}
+
+/* ── Mobile ── */
 @media (max-width: 480px) {
-  .hero-number { font-size: 48px; }
+  .hero-number { font-size: 56px; }
+  .q-text { font-size: 20px; }
+  .wrap { padding-bottom: 60px; }
   .industry-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .ind-btn { padding: 12px 4px 10px; border-radius: 12px; }
-  .ind-icon { font-size: 18px; margin-bottom: 4px; }
-  .wrap { padding: 0 16px 80px; }
+  .ind-btn { padding: 12px 4px 10px; }
+  .ind-icon { font-size: 18px; margin-bottom: 5px; }
+  .stat-val { font-size: 18px; }
 }
+
 @media print {
-  body { background: white; color: black; }
+  body { background: white !important; }
   .no-print { display: none !important; }
 }
 `;
@@ -345,16 +498,16 @@ function calcLeakage(revenue, answers) {
 const fmt = n => n >= 1000000 ? "$" + (n / 1000000).toFixed(2) + "M" : "$" + Math.round(n / 1000).toLocaleString() + "K";
 
 function sevColor(weight) {
-  if (weight >= 0.09) return { color: "#EF4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.25)", label: "Critical" };
-  if (weight >= 0.06) return { color: "#F97316", bg: "rgba(249,115,22,0.1)", border: "rgba(249,115,22,0.25)", label: "High" };
-  if (weight >= 0.03) return { color: "#EAB308", bg: "rgba(234,179,8,0.1)", border: "rgba(234,179,8,0.25)", label: "Moderate" };
-  return { color: "#22C55E", bg: "rgba(34,197,94,0.1)", border: "rgba(34,197,94,0.25)", label: "Low" };
+  if (weight >= 0.09) return { color: "#DC2626", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.2)", label: "Critical" };
+  if (weight >= 0.06) return { color: "#0066FF", bg: "rgba(0,102,255,0.08)", border: "rgba(0,102,255,0.2)", label: "High" };
+  if (weight >= 0.03) return { color: "#D97706", bg: "rgba(217,119,6,0.08)", border: "rgba(217,119,6,0.2)", label: "Moderate" };
+  return { color: "#22A05A", bg: "rgba(34,160,90,0.08)", border: "rgba(34,160,90,0.2)", label: "Low" };
 }
 
 function scoreColor(s) {
-  if (s >= 70) return "#22C55E";
-  if (s >= 50) return "#EAB308";
-  return "#EF4444";
+  if (s >= 70) return "#22A05A";
+  if (s >= 50) return "#D97706";
+  return "#DC2626";
 }
 
 export default function RevAudit() {
@@ -372,6 +525,8 @@ export default function RevAudit() {
   const revenueNum = parseFloat(revenue.replace(/[^0-9.]/g, "")) || 0;
   const setupValid = companyName.trim() && revenueNum > 0 && industry;
   const industryObj = INDUSTRIES.find(i => i.key === industry);
+
+  const reset = () => { setStep(0); setQIndex(0); setAnswers({}); setResults(null); setInsights(null); };
 
   const generateReport = useCallback(async () => {
     setStep(2);
@@ -401,46 +556,65 @@ export default function RevAudit() {
       <style>{CSS}</style>
       <div className="wrap">
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="header">
           <div className="kc-label">Kuharski Capital</div>
-          <div className="app-title" style={{ cursor: step > 0 ? "pointer" : "default" }} onClick={step > 0 ? () => { setStep(0); setQIndex(0); setAnswers({}); setResults(null); setInsights(null); } : undefined}>
+          <div
+            className="app-title"
+            style={{ cursor: step > 0 ? "pointer" : "default" }}
+            onClick={step > 0 ? reset : undefined}
+          >
             RevAudit™
           </div>
           <div className="app-sub">Revenue Leakage Intelligence</div>
         </div>
 
-        {/* Progress */}
+        {/* ── Progress bar ── */}
         {step > 0 && step < 3 && (
           <div className="progress-wrap no-print">
             <div className="progress-label">
               <span>{step === 1 ? `Question ${qIndex + 1} of ${QUESTIONS.length}` : "Generating report…"}</span>
               <span>{Math.round(progressPct)}%</span>
             </div>
-            <div className="progress-track"><div className="progress-fill" style={{ width: progressPct + "%" }} /></div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: progressPct + "%" }} />
+            </div>
           </div>
         )}
 
-        {/* SETUP */}
+        {/* ══ STEP 0 — SETUP ══ */}
         {step === 0 && (
           <div>
-            <div className="card" style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#F0F0F0", letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 10 }}>Find where revenue is leaking.</div>
-              <div style={{ fontSize: 13, color: "#3A3F55", lineHeight: 1.7 }}>7 questions. 3 minutes. Get a dollar-quantified revenue gap report — with live market data on what to do about it.</div>
+            <div className="intro-card">
+              <div className="intro-eyebrow">Revenue Diagnostic</div>
+              <div className="intro-headline">Find where revenue is leaking.</div>
+              <div className="intro-body">7 questions. Under 3 minutes. Get a dollar-quantified gap report backed by live market intelligence.</div>
             </div>
 
             <div className="card">
               <div className="setup-field">
                 <label className="field-label">Company Name</label>
-                <input className="ra-input text-input" placeholder="e.g. Precision Electric Co." value={companyName} onChange={e => setCompanyName(e.target.value)} />
+                <input
+                  className="ra-input text-input"
+                  placeholder="e.g. Precision Electric Co."
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                />
               </div>
               <div className="setup-field">
                 <label className="field-label">Annual Revenue</label>
                 <div className="input-wrap">
                   <span className="input-prefix">$</span>
-                  <input className="ra-input has-prefix" placeholder="1,200,000" value={revenue}
+                  <input
+                    className="ra-input has-prefix"
+                    placeholder="1,200,000"
+                    value={revenue}
                     onChange={e => setRevenue(e.target.value)}
-                    onBlur={e => { const n = parseFloat(e.target.value.replace(/[^0-9.]/g, "")); if (n) setRevenue(n.toLocaleString()); }} />
+                    onBlur={e => {
+                      const n = parseFloat(e.target.value.replace(/[^0-9.]/g, ""));
+                      if (n) setRevenue(n.toLocaleString());
+                    }}
+                  />
                 </div>
                 {revenueNum > 0 && <div className="rev-hint">{fmt(revenueNum)} annual revenue</div>}
               </div>
@@ -448,7 +622,11 @@ export default function RevAudit() {
                 <label className="field-label">Industry</label>
                 <div className="industry-grid">
                   {INDUSTRIES.map(ind => (
-                    <button key={ind.key} className={"ind-btn" + (industry === ind.key ? " sel" : "")} onClick={() => setIndustry(ind.key)}>
+                    <button
+                      key={ind.key}
+                      className={"ind-btn" + (industry === ind.key ? " sel" : "")}
+                      onClick={() => setIndustry(ind.key)}
+                    >
                       <span className="ind-icon">{ind.icon}</span>
                       <span className="ind-label">{ind.label}</span>
                     </button>
@@ -457,23 +635,30 @@ export default function RevAudit() {
               </div>
             </div>
 
-            <div style={{ marginTop: 16 }}>
-              <button className="btn-primary" disabled={!setupValid} onClick={() => setStep(1)}>
+            <div style={{ marginTop: 14 }}>
+              <button className="btn-primary btn-orange" disabled={!setupValid} onClick={() => setStep(1)}>
                 Start Diagnostic →
               </button>
             </div>
           </div>
         )}
 
-        {/* QUESTIONS */}
+        {/* ══ STEP 1 — QUESTIONS ══ */}
         {step === 1 && (
           <div>
             <div className="card">
-              <div className="q-category">{currentQ.category}</div>
+              <div className="q-step-badge">
+                <span className="q-category-dot" />
+                {currentQ.category}
+              </div>
               <div className="q-text">{currentQ.question}</div>
               <div className="choices">
                 {currentQ.choices.map(choice => (
-                  <button key={choice.label} className={"choice" + (selectedChoice?.label === choice.label ? " sel" : "")} onClick={() => setAnswers(prev => ({ ...prev, [currentQ.id]: choice }))}>
+                  <button
+                    key={choice.label}
+                    className={"choice" + (selectedChoice?.label === choice.label ? " sel" : "")}
+                    onClick={() => setAnswers(prev => ({ ...prev, [currentQ.id]: choice }))}
+                  >
                     <div className="choice-dot"><div className="choice-dot-inner" /></div>
                     <div className="choice-text">
                       <span className="choice-label">{choice.label}</span>
@@ -485,20 +670,24 @@ export default function RevAudit() {
             </div>
             <div className="btn-row">
               <button className="btn-ghost" onClick={() => qIndex > 0 ? setQIndex(i => i - 1) : setStep(0)}>← Back</button>
-              <button className="btn-primary" style={{ flex: 1 }} disabled={!selectedChoice}
-                onClick={() => qIndex < QUESTIONS.length - 1 ? setQIndex(i => i + 1) : generateReport()}>
+              <button
+                className="btn-primary btn-orange"
+                style={{ flex: 1 }}
+                disabled={!selectedChoice}
+                onClick={() => qIndex < QUESTIONS.length - 1 ? setQIndex(i => i + 1) : generateReport()}
+              >
                 {qIndex < QUESTIONS.length - 1 ? "Next →" : "Generate Report →"}
               </button>
             </div>
           </div>
         )}
 
-        {/* LOADING */}
+        {/* ══ STEP 2 — LOADING ══ */}
         {step === 2 && (
           <div className="loading-screen">
             <div className="loading-icon">⚡</div>
             <div className="loading-title">Building your report…</div>
-            <div className="loading-sub">Calculating leakage and searching for current {industryObj?.label} market trends.</div>
+            <div className="loading-sub">Searching for live {industryObj?.label} market data.</div>
             <div className="loading-steps">
               <div className="loading-step done"><div className="step-dot" />Diagnostic complete</div>
               <div className="loading-step done"><div className="step-dot" />Leakage estimates calculated</div>
@@ -507,18 +696,20 @@ export default function RevAudit() {
           </div>
         )}
 
-        {/* RESULTS */}
+        {/* ══ STEP 3 — RESULTS ══ */}
         {step === 3 && results && (
           <div>
-            {/* Hero card */}
-            <div className="card card-accent" style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: "#4A5070", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
-                {companyName} · {industryObj?.icon} {industryObj?.label}
+
+            {/* Hero */}
+            <div className="card-hero">
+              <div className="hero-company">
+                <span style={{ fontSize: 18 }}>{industryObj?.icon}</span>
+                <span style={{ fontSize: 13, color: "#555", fontWeight: 500 }}>{companyName}</span>
               </div>
-              <div style={{ fontSize: 13, color: "#4A5070", marginBottom: 6 }}>Estimated Annual Revenue Leakage</div>
+              <div className="hero-eyebrow">Estimated Annual Leakage</div>
               <div className="hero-number">{fmt(results.totalLeakage)}</div>
               <div className="hero-sub">
-                ≈ {Math.round((results.totalLeakage / revenueNum) * 100)}% of revenue &nbsp;·&nbsp; {fmt(results.totalLeakage / 12)}/month
+                ≈ {Math.round((results.totalLeakage / revenueNum) * 100)}% of revenue &nbsp;·&nbsp; {fmt(results.totalLeakage / 12)}/mo
               </div>
               <div className="stat-row">
                 <div className="stat-item">
@@ -526,11 +717,11 @@ export default function RevAudit() {
                   <div className="stat-label">Health Score</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-val" style={{ color: "#F0F0F0" }}>{results.topGaps.length}</div>
+                  <div className="stat-val">{results.topGaps.length}</div>
                   <div className="stat-label">Gaps Found</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-val" style={{ color: "#F0F0F0", fontFamily: "'DM Mono', monospace", fontSize: 16 }}>{fmt(revenueNum)}</div>
+                  <div className="stat-val" style={{ fontSize: 16 }}>{fmt(revenueNum)}</div>
                   <div className="stat-label">Revenue</div>
                 </div>
               </div>
@@ -542,19 +733,26 @@ export default function RevAudit() {
               const sev = sevColor(gap.weight);
               const fixes = CATEGORY_FIXES[gap.category] || [];
               return (
-                <div key={i} className="card card-sm" style={{ marginBottom: 10 }}>
+                <div key={i} className="card card-sm">
                   <div className="gap-header">
                     <div style={{ flex: 1 }}>
-                      <span className="gap-category-pill" style={{ background: sev.bg, color: sev.color, border: "1px solid " + sev.border }}>{gap.category} · {sev.label}</span>
-                      <div className="gap-answer" style={{ marginTop: 8 }}>You said: <strong>"{gap.answer}"</strong></div>
+                      <span className="gap-category-pill" style={{ background: sev.bg, color: sev.color, border: "1px solid " + sev.border }}>
+                        {gap.category} · {sev.label}
+                      </span>
+                      <div className="gap-answer" style={{ marginTop: 8 }}>
+                        You said: <strong>"{gap.answer}"</strong>
+                      </div>
                     </div>
-                    <div style={{ marginLeft: 12 }}>
+                    <div style={{ marginLeft: 14 }}>
                       <div className="gap-amount" style={{ color: sev.color }}>{fmt(gap.leakage)}</div>
                       <div className="gap-amount-label">per year</div>
                     </div>
                   </div>
                   {fixes.slice(0, 2).map((fix, j) => (
-                    <div key={j} className="fix-row"><span className="fix-check">✓</span><span className="fix-text">{fix}</span></div>
+                    <div key={j} className="fix-row">
+                      <span className="fix-check">✓</span>
+                      <span className="fix-text">{fix}</span>
+                    </div>
                   ))}
                 </div>
               );
@@ -566,12 +764,12 @@ export default function RevAudit() {
                 <div className="divider" />
                 <div className="section-label">What the {industryObj?.label} Market Is Saying</div>
                 {insights.industryContext && (
-                  <div className="card card-sm" style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 13, color: "#8A95B0", lineHeight: 1.7 }}>{insights.industryContext}</div>
+                  <div className="card card-sm">
+                    <div style={{ fontSize: 14, color: "#4A5568", lineHeight: 1.75, fontWeight: 400 }}>{insights.industryContext}</div>
                   </div>
                 )}
                 {insights.marketInsights?.map((mi, i) => (
-                  <div key={i} className="card card-sm" style={{ marginBottom: 10 }}>
+                  <div key={i} className="card card-sm">
                     <div className="insight-stat">"{mi.stat}"</div>
                     <div className="insight-source">— {mi.source}</div>
                     <div className="insight-context">{mi.relevance}</div>
@@ -589,32 +787,48 @@ export default function RevAudit() {
             {/* CTA */}
             <div className="divider" />
             <div className="cta-card">
-              <div style={{ fontSize: 11, color: "#F97316", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 700, marginBottom: 12 }}>Next Step</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#F0F0F0", letterSpacing: "-0.02em", marginBottom: 8 }}>Full Revenue Diagnostic</div>
-              <div style={{ fontSize: 13, color: "#4A5070", lineHeight: 1.7, marginBottom: 20 }}>
-                This scan identified <strong style={{ color: "#F0F0F0" }}>{fmt(results.totalLeakage)}</strong> in estimated annual leakage. A full audit goes deeper across every revenue category and delivers a 90-day action roadmap with dollar precision.
+              <div style={{ fontSize: 11, color: "#0066FF", textTransform: "uppercase", letterSpacing: "0.14em", fontWeight: 700, marginBottom: 10 }}>Next Step</div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: "#0D0D0D", letterSpacing: "-0.04em", marginBottom: 8 }}>Full Revenue Diagnostic</div>
+              <div style={{ fontSize: 14, color: "#8A9AB5", lineHeight: 1.7, marginBottom: 24 }}>
+                This scan found <strong style={{ color: "#0D0D0D" }}>{fmt(results.totalLeakage)}</strong> in estimated leakage. A full audit goes deeper across every revenue category and delivers a 90-day action roadmap with dollar precision.
               </div>
               <div className="cta-features">
-                {["Full diagnostic across all revenue categories", "Dollar impact quantified for each gap", "Prioritized 90-day action roadmap", "Benchmark comparison vs. industry top performers"].map(f => (
-                  <div key={f} className="cta-feature">{f}</div>
+                {[
+                  "Full diagnostic across all revenue categories",
+                  "Dollar impact quantified for each gap",
+                  "Prioritized 90-day action roadmap",
+                  "Benchmark vs. industry top performers",
+                ].map(f => (
+                  <div key={f} className="cta-feature">
+                    <div className="cta-check">✓</div>
+                    {f}
+                  </div>
                 ))}
               </div>
               <div className="cta-price">$1,500</div>
               <div className="cta-price-sub">Flat fee · Delivered in 5 business days</div>
-              <a href={`mailto:forrest@kuharskicapital.com?subject=Full Revenue Audit — ${companyName}`}
-                style={{ display: "block", marginTop: 20, padding: "17px", background: "linear-gradient(135deg, #F97316, #EA6A00)", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 700, textDecoration: "none", letterSpacing: "-0.01em", boxShadow: "0 8px 24px rgba(249,115,22,0.3)" }}>
+              <a
+                href={`mailto:forrest@kuharskicapital.com?subject=Full Revenue Audit — ${companyName}`}
+                style={{
+                  display: "block", marginTop: 24, padding: "18px",
+                  background: "#0066FF", borderRadius: 16,
+                  color: "#FFF", fontSize: 15, fontWeight: 800,
+                  textDecoration: "none", letterSpacing: "-0.01em",
+                  boxShadow: "0 8px 28px rgba(0,102,255,0.28)",
+                }}
+              >
                 Get the Full Audit →
               </a>
               <div className="cta-contact">forrest@kuharskicapital.com · kuharskicapital.com</div>
             </div>
 
             <div className="btn-row no-print" style={{ marginTop: 8 }}>
-              <button className="btn-ghost" onClick={() => { setStep(0); setQIndex(0); setAnswers({}); setResults(null); setInsights(null); }}>← New Report</button>
+              <button className="btn-ghost" onClick={reset}>← New Report</button>
               <button className="btn-ghost" style={{ flex: 1 }} onClick={() => window.print()}>🖨 Save PDF</button>
             </div>
+
           </div>
         )}
-
       </div>
     </div>
   );
