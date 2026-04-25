@@ -173,18 +173,42 @@ body{font-family:'DM Sans',-apple-system,sans-serif;background:#F0F4FB;color:#0D
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:#E4EAF4;border-radius:2px}
 
-/* Responsive */
+/* Mobile bottom nav */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid #E8EDF5;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:30;flex-direction:row;box-shadow:0 -4px 20px rgba(0,0,0,.06)}
+.mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;cursor:pointer;border:none;background:none;font-family:inherit;font-size:8px;font-weight:700;color:#A0ADC0;text-transform:uppercase;letter-spacing:.05em;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.mobile-nav-item.active{color:#0066FF}
+.mobile-nav-item svg{stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* Responsive — tablet */
 @media(max-width:900px){
   .sidebar{display:none}
+  .mobile-nav{display:flex}
+  .content{padding:20px 16px 80px}
+  .topbar{padding:0 14px;height:56px;gap:10px}
+  .topbar-title{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .client-select{min-width:0;flex:1;max-width:160px;font-size:12px;padding:6px 10px}
+  .topbar-new-btn{display:none}
   .grid-4{grid-template-columns:1fr 1fr}
   .grid-3{grid-template-columns:1fr 1fr}
-  .content{padding:20px 16px}
-  .topbar{padding:0 16px}
+  .section-header{flex-direction:column;align-items:flex-start;gap:8px}
 }
+/* Responsive — mobile */
 @media(max-width:600px){
+  .content{padding:16px 12px 84px}
   .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+  .metric-value{font-size:24px}
+  .card{padding:18px}
+  .topbar-title{display:none}
+  .client-select{max-width:none}
+  .filter-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;display:flex;scrollbar-width:none}
+  .filter-tabs::-webkit-scrollbar{display:none}
+  .edit-grid{grid-template-columns:1fr !important}
+  .action-item{flex-wrap:wrap}
+  .action-right{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;width:100%;gap:8px}
+  .ind-grid{grid-template-columns:repeat(4,1fr)}
+  .modal{padding:24px 20px}
 }
-@media print{body{background:#fff}.sidebar,.topbar .topbar-btn{display:none}.content{padding:0}}
+@media print{body{background:#fff}.sidebar,.topbar-btn,.mobile-nav{display:none!important}.content{padding:0}}
 `;
 
 // ─────────────────────────────────────────────
@@ -548,7 +572,7 @@ function RevenueGapsSection({ client, onUpdateArea }) {
               </div>
 
               {isOpen && (
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F0F4FB", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} onClick={e => e.stopPropagation()}>
+                <div className="edit-grid" style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F0F4FB", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} onClick={e => e.stopPropagation()}>
                   {[
                     { label: "Client Score (0–100)", key: "clientScore", suffix: "" },
                     { label: "Benchmark Score (0–100)", key: "benchmarkScore", suffix: "" },
@@ -941,7 +965,7 @@ export default function App() {
           <select className="client-select" value={activeClientId} onChange={e => { setActiveClientId(e.target.value); setActiveSection("overview"); }}>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <button className="topbar-btn btn-ghost" onClick={() => setShowNewClient(true)}>+ New Client</button>
+          <button className="topbar-btn btn-ghost topbar-new-btn" onClick={() => setShowNewClient(true)}>+ New Client</button>
         </div>
 
         {/* Content */}
@@ -952,6 +976,20 @@ export default function App() {
           {activeSection === "actions"   && <ActionPlanSection   client={client} onUpdateAction={updateAction} />}
           {activeSection === "progress"  && <ProgressSection     client={client} />}
         </div>
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <div className="mobile-nav">
+        {NAV.map(n => (
+          <button key={n.id} className={`mobile-nav-item ${activeSection === n.id ? "active" : ""}`} onClick={() => setActiveSection(n.id)}>
+            <svg viewBox="0 0 24 24" width={20} height={20}>{n.icon}</svg>
+            {n.label.split(" ")[0]}
+          </button>
+        ))}
+        <button className="mobile-nav-item" onClick={() => setShowNewClient(true)}>
+          <svg viewBox="0 0 24 24" width={20} height={20}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>
+          Add
+        </button>
       </div>
 
       {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
