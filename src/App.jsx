@@ -1,216 +1,209 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
+// ─────────────────────────────────────────────
+// CSS
+// ─────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&family=DM+Mono:wght@400;500&display=swap');
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #EBF0F8;
-  color: #0D0D0D;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'DM Sans',-apple-system,sans-serif;background:#F0F4FB;color:#0D0D0D;-webkit-font-smoothing:antialiased}
+
+/* Layout */
+.app{display:flex;height:100dvh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:#fff;border-right:1px solid #E8EDF5;display:flex;flex-direction:column;height:100%;overflow-y:auto;z-index:10}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.content{flex:1;overflow-y:auto;padding:28px 32px;background:#F0F4FB}
+
+/* Sidebar */
+.sb-header{padding:24px 20px 16px;border-bottom:1px solid #F0F4FB}
+.sb-logo{font-size:15px;font-weight:900;color:#0D0D0D;letter-spacing:-0.03em}
+.sb-logo span{color:#0066FF}
+.sb-nav{padding:12px 10px;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:all .15s;margin-bottom:2px;font-size:13px;font-weight:600;color:#8A9AB5;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.sb-item:hover{background:#F4F7FB;color:#4A5568}
+.sb-item.active{background:#EEF4FF;color:#0066FF}
+.sb-item svg{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.sb-section{font-size:10px;font-weight:700;color:#C0CAD8;text-transform:uppercase;letter-spacing:.12em;padding:16px 12px 6px}
+.sb-footer{padding:12px 10px;border-top:1px solid #F0F4FB}
+
+/* Header */
+.topbar{background:#fff;border-bottom:1px solid #E8EDF5;padding:0 32px;height:64px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.topbar-title{font-size:16px;font-weight:800;color:#0D0D0D;letter-spacing:-0.02em;flex:1}
+.topbar-title span{color:#8A9AB5;font-weight:400}
+.client-select{background:#F4F7FB;border:1.5px solid #E4EAF4;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:#0D0D0D;cursor:pointer;font-family:inherit;outline:none;transition:border-color .2s;min-width:200px}
+.client-select:focus{border-color:#0066FF}
+.topbar-btn{padding:9px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;border:none}
+.btn-primary{background:#0066FF;color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{background:#F4F7FB;color:#4A5568;border:1.5px solid #E4EAF4}
+.btn-ghost:hover{border-color:#CDD5E8}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:10px}
+
+/* Cards */
+.card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04),0 1px 3px rgba(0,0,0,0.03)}
+.card-dark{background:#0D0D0D;border-radius:20px;padding:24px;position:relative;overflow:hidden}
+.card-dark::after{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,102,255,.2) 0%,transparent 70%);pointer-events:none}
+
+/* Grid */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* Metric cards */
+.metric-label{font-size:11px;font-weight:700;color:#A0ADC0;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.metric-value{font-size:32px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:-0.04em;line-height:1;color:#0D0D0D}
+.metric-sub{font-size:12px;color:#A0ADC0;margin-top:6px;font-weight:400}
+.metric-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:8px}
+.delta-up{background:#EDFBF2;color:#22A05A}
+.delta-down{background:#FEF2F2;color:#DC2626}
+.delta-neutral{background:#F4F7FB;color:#8A9AB5}
+
+/* Editable field */
+.editable{cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:8px;transition:background .15s;display:inline-block}
+.editable:hover{background:#F4F7FB}
+.edit-input{background:#F4F7FB;border:1.5px solid #0066FF;border-radius:8px;padding:4px 10px;font-size:inherit;font-weight:inherit;font-family:'DM Mono',monospace;color:#0D0D0D;outline:none;width:140px}
+
+/* Score bar */
+.score-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.score-row-header{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.score-name{font-weight:600;color:#4A5568}
+.score-nums{font-family:'DM Mono',monospace;font-size:11px;color:#A0ADC0;display:flex;gap:8px;align-items:center}
+.score-track{height:8px;background:#F0F4FB;border-radius:4px;position:relative;overflow:visible}
+.score-bar-client{height:100%;border-radius:4px;transition:width .4s}
+.score-marker{position:absolute;top:-3px;width:2px;height:14px;background:#0066FF;border-radius:1px;transform:translateX(-1px)}
+.score-marker-label{position:absolute;top:-18px;font-size:9px;font-weight:700;color:#0066FF;transform:translateX(-50%);white-space:nowrap}
+
+/* Area cards */
+.area-card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,0.04);border:1.5px solid transparent;transition:border-color .2s;cursor:pointer}
+.area-card:hover{border-color:#E4EAF4}
+.area-card.selected{border-color:#0066FF;background:#FAFCFF}
+.area-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.area-name{font-size:14px;font-weight:800;color:#0D0D0D;letter-spacing:-0.01em}
+.area-leakage{font-size:18px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:-0.03em;text-align:right}
+.area-leakage-label{font-size:10px;color:#A0ADC0;text-align:right;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.cat-pill{display:inline-block;font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+
+/* Action items */
+.action-item{background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);display:flex;align-items:flex-start;gap:14px;border:1.5px solid transparent;transition:border-color .15s}
+.action-item.done{opacity:.65}
+.action-item:hover{border-color:#E4EAF4}
+.action-left{flex:1;min-width:0}
+.action-title{font-size:14px;font-weight:700;color:#0D0D0D;margin-bottom:3px;letter-spacing:-0.01em}
+.action-item.done .action-title{text-decoration:line-through;color:#A0ADC0}
+.action-desc{font-size:12px;color:#A0ADC0;line-height:1.5}
+.action-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.action-impact{font-size:13px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:-0.02em}
+.action-recovered{font-size:11px;font-weight:700;color:#22A05A;font-family:'DM Mono',monospace}
+.status-badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.status-open{background:#F4F7FB;color:#8A9AB5}
+.status-open:hover{background:#EEF4FF;color:#0066FF}
+.status-progress{background:#EEF4FF;color:#0066FF}
+.status-progress:hover{background:#DBEAFE;color:#0044CC}
+.status-done{background:#EDFBF2;color:#22A05A}
+.status-done:hover{background:#DCFCE7;color:#166534}
+.priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.p-critical{background:#DC2626}
+.p-high{background:#0066FF}
+.p-moderate{background:#D97706}
+
+/* Intel */
+.intel-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.04)}
+.intel-stat{font-size:15px;font-weight:700;color:#0D0D0D;line-height:1.4;margin-bottom:5px}
+.intel-source{font-size:10px;color:#0066FF;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:8px}
+.intel-context{font-size:13px;color:#8A9AB5;line-height:1.6}
+.opp-banner{background:#0D0D0D;border-radius:16px;padding:20px 22px;margin-bottom:10px;position:relative;overflow:hidden}
+.opp-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,102,255,.6),transparent)}
+.opp-label{font-size:10px;color:#0066FF;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:6px}
+.opp-text{font-size:14px;color:#CCC;line-height:1.6}
+
+/* Progress */
+.progress-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #F0F4FB}
+.progress-row:last-child{border-bottom:none}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:24px;padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-title{font-size:20px;font-weight:900;letter-spacing:-0.03em;margin-bottom:6px}
+.modal-sub{font-size:13px;color:#8A9AB5;margin-bottom:24px}
+.form-field{margin-bottom:18px}
+.form-label{font-size:11px;font-weight:700;color:#8A9AB5;text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;display:block}
+.form-input{width:100%;background:#F4F7FB;border:1.5px solid #E4EAF4;border-radius:12px;padding:13px 16px;font-size:15px;font-family:inherit;color:#0D0D0D;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:#0066FF;background:#fff}
+.ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ind-opt{background:#F4F7FB;border:1.5px solid #E4EAF4;border-radius:12px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .15s;font-family:inherit}
+.ind-opt:hover{background:#EEF2FA;border-color:#CDD5E8}
+.ind-opt.sel{background:#EEF4FF;border-color:#0066FF}
+.ind-opt svg{width:20px;height:20px;stroke:#A0ADC0;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;display:block;margin:0 auto 6px}
+.ind-opt.sel svg{stroke:#0066FF}
+.ind-opt-label{font-size:9px;font-weight:700;color:#A0ADC0;text-transform:uppercase;letter-spacing:.04em}
+.ind-opt.sel .ind-opt-label{color:#0066FF}
+.modal-actions{display:flex;gap:10px;margin-top:24px}
+
+/* Section title */
+.section-title{font-size:18px;font-weight:900;color:#0D0D0D;letter-spacing:-0.03em;margin-bottom:4px}
+.section-sub{font-size:13px;color:#8A9AB5;margin-bottom:22px}
+.section-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+
+/* Divider */
+.divider{height:1px;background:#F0F4FB;margin:24px 0}
+
+/* Filter tabs */
+.filter-tabs{display:flex;gap:6px;background:#F4F7FB;padding:5px;border-radius:12px;margin-bottom:20px;width:fit-content}
+.filter-tab{padding:7px 16px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:none;font-family:inherit;color:#8A9AB5;background:transparent}
+.filter-tab.active{background:#fff;color:#0D0D0D;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+
+/* Chip */
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:#A0ADC0}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:15px;font-weight:700;color:#4A5568;margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+/* Health ring */
+.health-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.health-ring-text{position:absolute;text-align:center}
+.health-num{font-size:28px;font-weight:900;font-family:'DM Mono',monospace;letter-spacing:-0.04em;color:#fff;line-height:1}
+.health-denom{font-size:11px;color:#555;font-weight:600}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#E4EAF4;border-radius:2px}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .content{padding:20px 16px}
+  .topbar{padding:0 16px}
 }
-.root {
-  min-height: 100dvh;
-  background: linear-gradient(160deg, #DDE8F5 0%, #EBF0F8 50%, #E4ECF6 100%);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 0 16px;
+@media(max-width:600px){
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
 }
-.wrap { width: 100%; max-width: 520px; padding-bottom: 80px; }
-
-/* ── Header ── */
-.header { padding: 56px 0 36px; }
-.kc-label { font-size: 11px; color: #B0BDD0; text-transform: uppercase; letter-spacing: 0.18em; font-weight: 600; margin-bottom: 10px; }
-.app-title { font-size: 30px; font-weight: 900; color: #0D0D0D; letter-spacing: -0.04em; line-height: 1; }
-.app-sub { font-size: 14px; color: #8A9AB5; margin-top: 6px; font-weight: 400; }
-
-/* ── Progress ── */
-.progress-wrap { margin-bottom: 28px; }
-.progress-track { height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; overflow: hidden; }
-.progress-fill { height: 100%; background: #0066FF; border-radius: 2px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
-.progress-label { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; color: #A0ADC0; font-weight: 500; }
-
-/* ── Cards ── */
-.card { background: #FFF; border-radius: 24px; padding: 28px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.04); }
-.card-sm { border-radius: 20px; padding: 22px 24px; }
-.card-hero { background: #0D0D0D; border-radius: 24px; padding: 32px 28px; margin-bottom: 12px; position: relative; overflow: hidden; }
-.card-hero::after { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%); pointer-events: none; }
-
-/* ── Hero ── */
-.hero-eyebrow { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 10px; }
-.hero-company { font-size: 13px; color: #444; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-.hero-number { font-size: 68px; font-weight: 900; letter-spacing: -0.05em; line-height: 0.95; font-family: 'DM Mono', monospace; color: #0066FF; }
-.hero-sub { font-size: 14px; color: #666; margin-top: 12px; font-weight: 400; }
-.stat-row { display: flex; margin-top: 24px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.08); }
-.stat-item { flex: 1; padding: 0 4px; }
-.stat-item + .stat-item { border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; }
-.stat-val { font-size: 22px; font-weight: 800; font-family: 'DM Mono', monospace; letter-spacing: -0.03em; color: #FFF; }
-.stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; font-weight: 600; }
-
-/* ── Inputs ── */
-.field-label { font-size: 12px; font-weight: 700; color: #8A9AB5; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; display: block; }
-.input-wrap { position: relative; }
-.input-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #A0ADC0; pointer-events: none; font-family: 'DM Mono', monospace; }
-.ra-input { width: 100%; background: #F4F7FB; border: 1.5px solid #E4EAF4; border-radius: 14px; padding: 15px 18px; color: #0D0D0D; font-size: 16px; font-family: 'DM Mono', monospace; outline: none; transition: border-color 0.2s, background 0.2s; font-weight: 500; }
-.ra-input:focus { border-color: #0066FF; background: #FFF; }
-.ra-input.has-prefix { padding-left: 28px; }
-.ra-input.text-input { font-family: 'DM Sans', sans-serif; font-weight: 500; }
-.ra-input::placeholder { color: #B0BDD0; }
-.rev-hint { font-size: 13px; color: #0066FF; margin-top: 8px; font-family: 'DM Mono', monospace; font-weight: 600; }
-
-/* ── Industry grid ── */
-.industry-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-.ind-btn { background: #F4F7FB; border: 1.5px solid #E4EAF4; border-radius: 16px; padding: 18px 8px 14px; text-align: center; cursor: pointer; transition: all 0.18s; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.ind-btn:hover { background: #EEF2FA; border-color: #CDD5E8; }
-.ind-btn.sel { background: #EEF4FF; border-color: #0066FF; }
-.ind-icon-wrap { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-.ind-icon-wrap svg { width: 22px; height: 22px; stroke: #A0ADC0; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.18s; }
-.ind-btn.sel .ind-icon-wrap svg { stroke: #0066FF; }
-.ind-label { font-size: 9px; font-weight: 700; color: #A0ADC0; display: block; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.05em; }
-.ind-btn.sel .ind-label { color: #0066FF; }
-
-/* ── Question ── */
-.q-step-badge { display: inline-flex; align-items: center; gap: 8px; background: #0D0D0D; color: #FFF; border-radius: 20px; padding: 6px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
-.q-category-dot { width: 6px; height: 6px; border-radius: 50%; background: #0066FF; flex-shrink: 0; }
-.q-text { font-size: 22px; font-weight: 800; color: #0D0D0D; line-height: 1.25; letter-spacing: -0.03em; margin-bottom: 28px; }
-.choices { display: flex; flex-direction: column; gap: 10px; }
-.choice { background: #F4F7FB; border: 1.5px solid #E4EAF4; border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.18s; text-align: left; font-family: inherit; display: flex; align-items: center; gap: 14px; }
-.choice:hover { background: #EEF2FA; border-color: #CDD5E8; }
-.choice.sel { background: #EEF4FF; border-color: #0066FF; }
-.choice-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #D0D9E8; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.18s; background: #FFF; }
-.choice.sel .choice-dot { background: #0066FF; border-color: #0066FF; box-shadow: 0 0 0 3px rgba(0,102,255,0.15); }
-.choice-dot-inner { width: 8px; height: 8px; border-radius: 50%; background: white; opacity: 0; transition: opacity 0.18s; }
-.choice.sel .choice-dot-inner { opacity: 1; }
-.choice-text { flex: 1; }
-.choice-label { font-size: 15px; font-weight: 700; color: #4A5568; display: block; margin-bottom: 3px; letter-spacing: -0.01em; }
-.choice.sel .choice-label { color: #0D0D0D; }
-.choice-desc { font-size: 13px; color: #A0ADC0; line-height: 1.4; font-weight: 400; }
-.choice.sel .choice-desc { color: #5068A0; }
-
-/* ── Buttons ── */
-.btn-primary { width: 100%; padding: 18px; background: #0D0D0D; border: none; border-radius: 16px; color: #FFF; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; letter-spacing: -0.01em; transition: opacity 0.15s, transform 0.1s; }
-.btn-primary:hover { opacity: 0.85; }
-.btn-primary:active { transform: scale(0.99); }
-.btn-primary:disabled { background: #E4EAF4; color: #A0ADC0; cursor: not-allowed; }
-.btn-blue { background: #0066FF; }
-.btn-blue:hover { opacity: 0.88; }
-.btn-ghost { padding: 16px 20px; background: #FFF; border: 1.5px solid #E4EAF4; border-radius: 16px; color: #8A9AB5; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
-.btn-ghost:hover { border-color: #CDD5E8; color: #4A5568; }
-.btn-row { display: flex; gap: 10px; margin-top: 16px; }
-
-/* ── Intro card ── */
-.intro-card { background: #0D0D0D; border-radius: 24px; padding: 32px 28px; margin-bottom: 14px; position: relative; overflow: hidden; }
-.intro-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,102,255,0.15) 0%, transparent 65%); pointer-events: none; }
-.intro-eyebrow { font-size: 11px; color: #0066FF; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin-bottom: 12px; }
-.intro-headline { font-size: 28px; font-weight: 900; color: #FFF; line-height: 1.15; letter-spacing: -0.04em; margin-bottom: 14px; }
-.intro-body { font-size: 14px; color: #555; line-height: 1.7; font-weight: 400; }
-
-/* ── Loading ── */
-.loading-screen { text-align: center; padding: 80px 0; }
-.loading-icon { font-size: 40px; margin-bottom: 24px; animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-.loading-title { font-size: 24px; font-weight: 900; color: #0D0D0D; margin-bottom: 8px; letter-spacing: -0.03em; }
-.loading-sub { font-size: 14px; color: #A0ADC0; margin-bottom: 40px; }
-.loading-steps { display: flex; flex-direction: column; gap: 14px; max-width: 260px; margin: 0 auto; }
-.loading-step { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #C0CAD8; font-weight: 500; }
-.loading-step.done { color: #22A05A; }
-.step-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-
-/* ── Gap cards ── */
-.gap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-.gap-category-pill { font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.08em; }
-.gap-amount { font-size: 26px; font-weight: 900; font-family: 'DM Mono', monospace; text-align: right; letter-spacing: -0.04em; }
-.gap-amount-label { font-size: 10px; color: #A0ADC0; text-align: right; margin-top: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-.gap-answer { font-size: 13px; color: #A0ADC0; margin-bottom: 14px; font-weight: 400; }
-.gap-answer strong { color: #4A5568; font-weight: 600; }
-.fix-row { display: flex; gap: 10px; margin-bottom: 8px; }
-.fix-check { color: #22A05A; font-size: 13px; flex-shrink: 0; font-weight: 700; }
-.fix-text { font-size: 13px; color: #8A9AB5; line-height: 1.5; font-weight: 400; }
-
-/* ── Insight cards ── */
-.insight-stat { font-size: 16px; font-weight: 700; color: #0D0D0D; line-height: 1.4; margin-bottom: 6px; letter-spacing: -0.01em; }
-.insight-source { font-size: 11px; color: #0066FF; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-.insight-context { font-size: 13px; color: #8A9AB5; line-height: 1.6; }
-
-/* ── Opportunity banner ── */
-.opp-banner { background: #0D0D0D; border-radius: 20px; padding: 24px; margin-bottom: 12px; position: relative; overflow: hidden; }
-.opp-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,102,255,0.6), transparent); }
-.opp-label { font-size: 11px; color: #0066FF; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; margin-bottom: 8px; }
-.opp-text { font-size: 15px; color: #CCC; line-height: 1.6; font-weight: 400; }
-
-/* ── CTA card ── */
-.cta-card { background: #FFF; border-radius: 24px; padding: 36px 28px; text-align: center; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04); }
-.cta-price { font-size: 52px; font-weight: 900; font-family: 'DM Mono', monospace; color: #0D0D0D; letter-spacing: -0.05em; line-height: 1; }
-.cta-price-sub { font-size: 13px; color: #A0ADC0; margin-top: 6px; font-weight: 400; }
-.cta-features { display: flex; flex-direction: column; gap: 12px; margin: 28px 0 32px; text-align: left; }
-.cta-feature { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #4A5568; font-weight: 400; }
-.cta-check { width: 22px; height: 22px; border-radius: 50%; background: #EDFBF2; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 700; color: #22A05A; }
-.cta-contact { font-size: 12px; color: #C0CAD8; margin-top: 14px; font-weight: 400; }
-
-/* ── Section label ── */
-.section-label { font-size: 11px; font-weight: 700; color: #A0ADC0; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 14px; padding-left: 2px; }
-.divider { height: 1px; background: rgba(0,0,0,0.06); margin: 36px 0; }
-.setup-field { margin-bottom: 26px; }
-
-/* ── Desktop ── */
-@media (min-width: 768px) {
-  .root { padding: 0 32px; }
-  .wrap { max-width: 540px; }
-  .header { padding: 72px 0 48px; }
-  .card { padding: 36px; }
-  .card-sm { padding: 28px; }
-  .card-hero { padding: 40px 36px; }
-  .intro-card { padding: 40px 36px; }
-  .cta-card { padding: 44px 40px; }
-  .hero-number { font-size: 80px; }
-  .q-text { font-size: 24px; }
-  .choice { padding: 20px 22px; }
-}
-
-/* ── Mobile ── */
-@media (max-width: 480px) {
-  .hero-number { font-size: 56px; }
-  .q-text { font-size: 20px; }
-  .wrap { padding-bottom: 60px; }
-  .card { padding: 22px; }
-  .card-sm { padding: 18px; }
-  .industry-grid { gap: 6px; }
-  .ind-btn { padding: 14px 6px 12px; }
-  .stat-val { font-size: 18px; }
-}
-
-@media print {
-  body { background: white !important; }
-  .no-print { display: none !important; }
-}
+@media print{body{background:#fff}.sidebar,.topbar .topbar-btn{display:none}.content{padding:0}}
 `;
 
-/* ── Industry SVG icons ── */
+// ─────────────────────────────────────────────
+// SVG Icons
+// ─────────────────────────────────────────────
+const Icon = ({ d, children, size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    {d ? <path d={d} /> : children}
+  </svg>
+);
+
 const IND_ICONS = {
-  electrical: (
-    <svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
-  ),
-  hvac: (
-    <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" /><circle cx="12" cy="12" r="3" /></svg>
-  ),
-  plumbing: (
-    <svg viewBox="0 0 24 24"><path d="M12 2C8 7 5 11 5 14a7 7 0 0014 0c0-3-3-7-7-12z" /></svg>
-  ),
-  agency: (
-    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
-  ),
-  retail: (
-    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14h18V6l-3-4H6z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
-  ),
-  healthcare: (
-    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></svg>
-  ),
-  remodel: (
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-  ),
+  electrical: <><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></>,
+  hvac: <><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" /><circle cx="12" cy="12" r="3" /></>,
+  plumbing: <><path d="M12 2C8 7 5 11 5 14a7 7 0 0014 0c0-3-3-7-7-12z" /></>,
+  agency: <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>,
+  retail: <><path d="M6 2L3 6v14h18V6l-3-4H6z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></>,
+  healthcare: <><rect x="3" y="3" width="18" height="18" rx="3" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" /></>,
+  remodel: <><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>,
 };
 
 const INDUSTRIES = [
@@ -223,728 +216,745 @@ const INDUSTRIES = [
   { key: "remodel",    label: "Remodel"    },
 ];
 
-/* ── Industry-specific question sets ── */
-const INDUSTRY_QUESTIONS = {
+// ─────────────────────────────────────────────
+// Industry defaults
+// ─────────────────────────────────────────────
+const AREA_DEFAULTS = {
   electrical: [
-    { id: "lead_response", category: "Demand",
-      question: "When a new electrical lead contacts you, how quickly does your team respond?",
-      choices: [
-        { label: "Within minutes", desc: "Always answered or called back immediately", weight: 0.01 },
-        { label: "Same day", desc: "Typically respond within a few hours", weight: 0.03 },
-        { label: "Next day or longer", desc: "Sometimes leads fall through the cracks", weight: 0.06 },
-        { label: "No real system", desc: "Honestly, some inquiries never get followed up", weight: 0.10 },
-      ]},
-    { id: "quote_win_rate", category: "Sales",
-      question: "When you send an electrical quote, how often do you win the job?",
-      choices: [
-        { label: "More than 7 in 10", desc: "Strong close rate — prospects convert well", weight: 0.01 },
-        { label: "About half", desc: "Win roughly 50% of quotes sent out", weight: 0.04 },
-        { label: "Less than half", desc: "Win maybe 3–4 out of every 10", weight: 0.07 },
-        { label: "Don't track it", desc: "No visibility into win/loss rates at all", weight: 0.09 },
-      ]},
-    { id: "change_orders", category: "Billing",
-      question: "How consistently do you document and bill for change orders and scope additions?",
-      choices: [
-        { label: "Every time, no exceptions", desc: "Signed change order before any additional work", weight: 0.01 },
-        { label: "Most of the time", desc: "Occasional verbal approvals that don't get billed", weight: 0.04 },
-        { label: "Inconsistently", desc: "Often just absorb extra scope to keep the peace", weight: 0.08 },
-        { label: "Rarely formalize it", desc: "Change orders are not part of our process", weight: 0.12 },
-      ]},
-    { id: "tech_utilization", category: "Labor",
-      question: "How efficiently are your electricians scheduled and utilized each day?",
-      choices: [
-        { label: "Highly efficient", desc: "Tight scheduling, minimal drive time and idle gaps", weight: 0.02 },
-        { label: "Pretty good", desc: "Some inefficiency but generally productive", weight: 0.05 },
-        { label: "Noticeable gaps", desc: "Visible idle time, travel inefficiency, or rework", weight: 0.09 },
-        { label: "Significant waste", desc: "Scheduling issues and rework are common problems", weight: 0.14 },
-      ]},
-    { id: "service_agreements", category: "Revenue Model",
-      question: "Do you offer electrical service agreements or maintenance contracts?",
-      choices: [
-        { label: "Yes — active program", desc: "Structured agreements generating recurring revenue", weight: 0.00 },
-        { label: "Informal only", desc: "A few regulars, no structured offering", weight: 0.04 },
-        { label: "Barely any", desc: "Almost entirely project-by-project work", weight: 0.07 },
-        { label: "None at all", desc: "No recurring revenue component whatsoever", weight: 0.10 },
-      ]},
-    { id: "customer_retention", category: "Retention",
-      question: "How well do past customers come back and refer new work to you?",
-      choices: [
-        { label: "Strong — we're their electrician", desc: "High repeat rate, referrals are a major source", weight: 0.01 },
-        { label: "Decent repeat business", desc: "Good relationships but no formal follow-up", weight: 0.04 },
-        { label: "Mostly one-and-done", desc: "Most customers don't return or refer others", weight: 0.08 },
-        { label: "No strategy for it", desc: "Never focused on retention or referrals", weight: 0.12 },
-      ]},
-    { id: "pipeline_visibility", category: "Forecasting",
-      question: "How clearly can you see your job pipeline and forecast revenue 30–60 days out?",
-      choices: [
-        { label: "Very clear", desc: "Know what's coming and can plan around it", weight: 0.01 },
-        { label: "Roughly", desc: "Have a sense — some gaps in visibility", weight: 0.03 },
-        { label: "Murky", desc: "Hard to predict what next month brings", weight: 0.06 },
-        { label: "Flying blind", desc: "No real pipeline visibility at all", weight: 0.09 },
-      ]},
+    { id: "demand",    label: "Lead Response & Demand Capture", category: "Demand",        clientScore: 44, benchmarkScore: 78, leakagePct: 0.09 },
+    { id: "sales",     label: "Quote Conversion & Pricing",     category: "Sales",         clientScore: 52, benchmarkScore: 74, leakagePct: 0.07 },
+    { id: "billing",   label: "Change Orders & Collections",    category: "Billing",       clientScore: 58, benchmarkScore: 80, leakagePct: 0.08 },
+    { id: "labor",     label: "Technician Utilization",         category: "Labor",         clientScore: 47, benchmarkScore: 77, leakagePct: 0.10 },
+    { id: "retention", label: "Customer Retention & Referrals", category: "Retention",     clientScore: 38, benchmarkScore: 71, leakagePct: 0.09 },
+    { id: "recurring", label: "Service Agreements",             category: "Revenue Model", clientScore: 26, benchmarkScore: 64, leakagePct: 0.08 },
   ],
-
   hvac: [
-    { id: "lead_response", category: "Demand",
-      question: "How quickly does your team respond to new HVAC service calls and web inquiries?",
-      choices: [
-        { label: "Within minutes", desc: "Calls answered or texted back immediately", weight: 0.01 },
-        { label: "Within a few hours", desc: "Respond same day, typically promptly", weight: 0.03 },
-        { label: "Next day or longer", desc: "Sometimes slower, especially in off-peak periods", weight: 0.07 },
-        { label: "No reliable process", desc: "Response time is inconsistent and untracked", weight: 0.10 },
-      ]},
-    { id: "maintenance_agreements", category: "Revenue Model",
-      question: "What portion of your residential customers are on a maintenance agreement?",
-      choices: [
-        { label: "30%+ — strong program", desc: "Maintenance agreements are a core revenue driver", weight: 0.00 },
-        { label: "10–30%", desc: "Growing program, not yet maximized", weight: 0.04 },
-        { label: "Under 10%", desc: "Few agreements, mostly reactive service", weight: 0.08 },
-        { label: "None offered", desc: "No maintenance agreement program in place", weight: 0.12 },
-      ]},
-    { id: "tech_upsell", category: "Sales",
-      question: "How often do your technicians present and close premium equipment or add-on solutions on site?",
-      choices: [
-        { label: "Consistently — it's trained", desc: "Techs always present options at every visit", weight: 0.01 },
-        { label: "Sometimes", desc: "It happens but isn't systematic", weight: 0.05 },
-        { label: "Rarely", desc: "Techs focus on the repair, not the sale", weight: 0.08 },
-        { label: "Never", desc: "No upsell or premium option presentations", weight: 0.11 },
-      ]},
-    { id: "seasonal_demand", category: "Labor",
-      question: "How well do you manage technician scheduling and demand during peak seasons?",
-      choices: [
-        { label: "Very well", desc: "Pre-season campaigns, optimized scheduling", weight: 0.02 },
-        { label: "Mostly okay", desc: "Some strain at peaks but generally manageable", weight: 0.05 },
-        { label: "Struggle at peaks", desc: "Missed calls and delays during busy periods", weight: 0.09 },
-        { label: "Significant problems", desc: "Demand spikes regularly cause lost revenue", weight: 0.13 },
-      ]},
-    { id: "billing_speed", category: "Billing",
-      question: "How quickly do you invoice after completing an HVAC service visit?",
-      choices: [
-        { label: "Same day — always", desc: "Invoiced at the job site or within hours", weight: 0.01 },
-        { label: "Within a few days", desc: "Typically invoiced by end of week", weight: 0.04 },
-        { label: "Inconsistent", desc: "Sometimes lags a week or more", weight: 0.07 },
-        { label: "Major delays", desc: "Invoice lag is a real cash flow problem", weight: 0.11 },
-      ]},
-    { id: "customer_retention", category: "Retention",
-      question: "How well do you retain residential HVAC customers for future service and referrals?",
-      choices: [
-        { label: "Very well", desc: "High repeat rate with structured follow-up", weight: 0.01 },
-        { label: "Decent", desc: "Some repeat customers, informal follow-up", weight: 0.04 },
-        { label: "Low retention", desc: "Most customers shop around each time", weight: 0.08 },
-        { label: "No strategy", desc: "No system for follow-up or referrals", weight: 0.12 },
-      ]},
-    { id: "pipeline_visibility", category: "Forecasting",
-      question: "How clearly can you forecast revenue through seasonal demand swings?",
-      choices: [
-        { label: "Very clear", desc: "Can plan staffing and cash around demand cycles", weight: 0.01 },
-        { label: "Roughly", desc: "General sense, some gaps", weight: 0.03 },
-        { label: "Difficult to predict", desc: "Revenue variance is hard to plan around", weight: 0.07 },
-        { label: "Flying blind", desc: "No reliable forecasting in place", weight: 0.09 },
-      ]},
+    { id: "demand",    label: "Service Call Response",          category: "Demand",        clientScore: 50, benchmarkScore: 80, leakagePct: 0.08 },
+    { id: "recurring", label: "Maintenance Agreement Rate",     category: "Revenue Model", clientScore: 18, benchmarkScore: 68, leakagePct: 0.12 },
+    { id: "sales",     label: "On-Site Upsell & Premium Sales", category: "Sales",         clientScore: 40, benchmarkScore: 72, leakagePct: 0.09 },
+    { id: "labor",     label: "Seasonal Demand Management",     category: "Labor",         clientScore: 44, benchmarkScore: 75, leakagePct: 0.08 },
+    { id: "billing",   label: "Invoicing Speed",                category: "Billing",       clientScore: 60, benchmarkScore: 82, leakagePct: 0.06 },
+    { id: "retention", label: "Customer Retention",             category: "Retention",     clientScore: 35, benchmarkScore: 70, leakagePct: 0.09 },
   ],
-
   plumbing: [
-    { id: "lead_response", category: "Demand",
-      question: "When a new plumbing call comes in, how quickly does your team respond?",
-      choices: [
-        { label: "Immediately — always", desc: "Live answer or instant text/callback", weight: 0.01 },
-        { label: "Within a few hours", desc: "Same-day response almost always", weight: 0.03 },
-        { label: "Next day or slower", desc: "Occasional missed calls and delayed follow-ups", weight: 0.07 },
-        { label: "No consistent process", desc: "Response time is unpredictable and untracked", weight: 0.10 },
-      ]},
-    { id: "premium_pricing", category: "Sales",
-      question: "How often do you price premium or offer add-on services (water quality, drain protection, etc.)?",
-      choices: [
-        { label: "Consistently", desc: "Structured options presented at every visit", weight: 0.01 },
-        { label: "Sometimes", desc: "Mentioned when it comes up naturally", weight: 0.04 },
-        { label: "Rarely", desc: "Focus is on fixing the problem, not upselling", weight: 0.08 },
-        { label: "Never", desc: "No add-on or premium pricing approach", weight: 0.11 },
-      ]},
-    { id: "billing_speed", category: "Billing",
-      question: "How quickly do you invoice after completing a plumbing job?",
-      choices: [
-        { label: "At the job site", desc: "Invoiced and collected before leaving", weight: 0.01 },
-        { label: "Same or next day", desc: "Invoice goes out within 24 hours", weight: 0.04 },
-        { label: "Within the week", desc: "Usually a few days, sometimes longer", weight: 0.07 },
-        { label: "Inconsistent / delayed", desc: "Invoice lag creates real cash flow gaps", weight: 0.11 },
-      ]},
-    { id: "tech_utilization", category: "Labor",
-      question: "How efficiently are your plumbers dispatched and scheduled each day?",
-      choices: [
-        { label: "Highly efficient", desc: "Optimized routes, minimal windshield time", weight: 0.02 },
-        { label: "Mostly efficient", desc: "Some inefficiency but solid utilization", weight: 0.05 },
-        { label: "Noticeable gaps", desc: "Visible idle time or poor routing", weight: 0.09 },
-        { label: "Significant waste", desc: "Dispatch and scheduling are ongoing problems", weight: 0.14 },
-      ]},
-    { id: "repeat_customers", category: "Retention",
-      question: "How many of your customers call back or actively refer others to your business?",
-      choices: [
-        { label: "Most of them", desc: "We're their go-to plumber — strong loyalty", weight: 0.01 },
-        { label: "A decent number", desc: "Regular repeat customers, informal referrals", weight: 0.04 },
-        { label: "Very few", desc: "Most customers only use us once", weight: 0.08 },
-        { label: "Essentially none", desc: "No focus on retention or referral generation", weight: 0.12 },
-      ]},
-    { id: "service_agreements", category: "Revenue Model",
-      question: "Do you have recurring service agreements or maintenance plans in place?",
-      choices: [
-        { label: "Yes — active program", desc: "Meaningful recurring revenue from agreements", weight: 0.00 },
-        { label: "A few informal ones", desc: "Some regulars but no structured program", weight: 0.04 },
-        { label: "Barely any", desc: "Almost entirely project-by-project", weight: 0.07 },
-        { label: "None at all", desc: "100% transactional — no recurring revenue", weight: 0.10 },
-      ]},
-    { id: "pipeline_visibility", category: "Forecasting",
-      question: "How clearly can you see upcoming work and forecast next month's revenue?",
-      choices: [
-        { label: "Very clear", desc: "Solid pipeline visibility and revenue projections", weight: 0.01 },
-        { label: "Roughly", desc: "General sense, some blind spots", weight: 0.03 },
-        { label: "Hard to predict", desc: "Revenue is reactive and hard to forecast", weight: 0.06 },
-        { label: "No visibility at all", desc: "Live job to job with no forward view", weight: 0.09 },
-      ]},
+    { id: "demand",    label: "Lead Response",                  category: "Demand",        clientScore: 48, benchmarkScore: 79, leakagePct: 0.09 },
+    { id: "sales",     label: "Premium Pricing & Add-Ons",      category: "Sales",         clientScore: 35, benchmarkScore: 68, leakagePct: 0.08 },
+    { id: "billing",   label: "Invoicing & Collections",        category: "Billing",       clientScore: 55, benchmarkScore: 78, leakagePct: 0.07 },
+    { id: "labor",     label: "Dispatch Efficiency",            category: "Labor",         clientScore: 50, benchmarkScore: 76, leakagePct: 0.09 },
+    { id: "retention", label: "Repeat Customer Rate",           category: "Retention",     clientScore: 40, benchmarkScore: 72, leakagePct: 0.08 },
+    { id: "recurring", label: "Service Agreements",             category: "Revenue Model", clientScore: 15, benchmarkScore: 55, leakagePct: 0.07 },
   ],
-
   agency: [
-    { id: "revenue_model", category: "Revenue Model",
-      question: "What portion of your agency revenue comes from ongoing retainers vs. one-off projects?",
-      choices: [
-        { label: "Mostly retainers (60%+)", desc: "Predictable recurring revenue base", weight: 0.01 },
-        { label: "Mixed (30–60%)", desc: "Healthy balance but room to shift to retainers", weight: 0.04 },
-        { label: "Mostly project work", desc: "Revenue is inconsistent, feast-or-famine cycles", weight: 0.09 },
-        { label: "Almost all project work", desc: "No real recurring base — high revenue volatility", weight: 0.13 },
-      ]},
-    { id: "scope_creep", category: "Billing",
-      question: "How well do you identify, document, and bill for scope creep and out-of-scope requests?",
-      choices: [
-        { label: "Tight — always documented", desc: "Change orders or addendums used consistently", weight: 0.01 },
-        { label: "Mostly", desc: "Usually caught, occasionally absorbed", weight: 0.04 },
-        { label: "Often absorbed", desc: "Scope creep frequently goes unbilled", weight: 0.08 },
-        { label: "No real process", desc: "Clients routinely get extra work for free", weight: 0.12 },
-      ]},
-    { id: "close_rate", category: "Sales",
-      question: "What is your close rate on new business proposals and pitches?",
-      choices: [
-        { label: "Above 60%", desc: "Strong conversion — proposals land well", weight: 0.01 },
-        { label: "40–60%", desc: "Solid close rate with room to improve", weight: 0.04 },
-        { label: "Below 40%", desc: "Too many proposals that don't convert", weight: 0.08 },
-        { label: "Not tracked", desc: "No visibility into proposal win/loss data", weight: 0.10 },
-      ]},
-    { id: "utilization_rate", category: "Labor",
-      question: "What is your team's average billable utilization rate?",
-      choices: [
-        { label: "Above 75% billable", desc: "Strong utilization — minimal non-billable drag", weight: 0.02 },
-        { label: "60–75% billable", desc: "Acceptable but meaningful non-billable hours", weight: 0.05 },
-        { label: "Below 60% billable", desc: "Significant non-billable time eating into margins", weight: 0.09 },
-        { label: "Not tracked", desc: "No visibility into billable vs. non-billable hours", weight: 0.13 },
-      ]},
-    { id: "client_retention", category: "Retention",
-      question: "What is your annual client retention rate?",
-      choices: [
-        { label: "Above 85%", desc: "Strong loyalty — clients stay and grow with you", weight: 0.01 },
-        { label: "70–85%", desc: "Decent retention with some preventable churn", weight: 0.04 },
-        { label: "Below 70%", desc: "High churn is creating revenue volatility", weight: 0.09 },
-        { label: "Not measured", desc: "No formal tracking of client retention", weight: 0.11 },
-      ]},
-    { id: "lead_pipeline", category: "Demand",
-      question: "How strong and consistent is your inbound pipeline of new business opportunities?",
-      choices: [
-        { label: "Strong and consistent", desc: "Reliable inbound flow from referrals and marketing", weight: 0.01 },
-        { label: "Intermittent", desc: "Good periods and slow periods with no real system", weight: 0.05 },
-        { label: "Mostly referral dependent", desc: "Pipeline is unpredictable and hard to influence", weight: 0.08 },
-        { label: "Very weak", desc: "New business is largely reactive — no pipeline", weight: 0.12 },
-      ]},
-    { id: "revenue_forecast", category: "Forecasting",
-      question: "How accurately can you forecast agency revenue 60–90 days out?",
-      choices: [
-        { label: "Very accurately", desc: "Reliable forecasting tied to retainers and pipeline", weight: 0.01 },
-        { label: "Roughly", desc: "General sense, meaningful variability", weight: 0.03 },
-        { label: "Difficult", desc: "Revenue is hard to predict more than a few weeks out", weight: 0.07 },
-        { label: "Not really possible", desc: "No system for revenue forecasting", weight: 0.09 },
-      ]},
+    { id: "recurring", label: "Retainer vs. Project Mix",       category: "Revenue Model", clientScore: 30, benchmarkScore: 72, leakagePct: 0.12 },
+    { id: "billing",   label: "Scope Creep & Billing",          category: "Billing",       clientScore: 42, benchmarkScore: 76, leakagePct: 0.10 },
+    { id: "sales",     label: "New Business Close Rate",        category: "Sales",         clientScore: 48, benchmarkScore: 70, leakagePct: 0.07 },
+    { id: "labor",     label: "Billable Utilization",           category: "Labor",         clientScore: 55, benchmarkScore: 78, leakagePct: 0.09 },
+    { id: "retention", label: "Client Retention Rate",          category: "Retention",     clientScore: 60, benchmarkScore: 82, leakagePct: 0.08 },
+    { id: "demand",    label: "Pipeline & New Business",        category: "Demand",        clientScore: 38, benchmarkScore: 68, leakagePct: 0.07 },
   ],
-
   retail: [
-    { id: "traffic_conversion", category: "Demand",
-      question: "How effective is your approach to driving consistent foot traffic or online visitors?",
-      choices: [
-        { label: "Very effective", desc: "Multi-channel strategy with predictable traffic", weight: 0.01 },
-        { label: "Decent", desc: "Some channels working, others underutilized", weight: 0.04 },
-        { label: "Inconsistent", desc: "Traffic is variable and hard to influence", weight: 0.08 },
-        { label: "Mostly passive", desc: "No real strategy — relying on walk-ins", weight: 0.12 },
-      ]},
-    { id: "conversion_rate", category: "Sales",
-      question: "What is your typical visitor-to-purchase conversion rate?",
-      choices: [
-        { label: "Above 40%", desc: "Strong conversion — most visitors buy", weight: 0.01 },
-        { label: "25–40%", desc: "Solid rate, some optimization opportunity", weight: 0.04 },
-        { label: "Below 25%", desc: "Many visitors leave without purchasing", weight: 0.08 },
-        { label: "Not tracked", desc: "Conversion rate is not measured", weight: 0.10 },
-      ]},
-    { id: "avg_transaction", category: "Billing",
-      question: "How actively do you increase average transaction value through upsells and bundles?",
-      choices: [
-        { label: "Systematically", desc: "Trained staff, strategic product placement, bundles", weight: 0.01 },
-        { label: "Somewhat", desc: "Some upselling happens but inconsistently", weight: 0.05 },
-        { label: "Rarely", desc: "Staff don't regularly suggest additions", weight: 0.09 },
-        { label: "Not at all", desc: "No focus on increasing basket size", weight: 0.12 },
-      ]},
-    { id: "staff_scheduling", category: "Labor",
-      question: "How well are your staff scheduled to match peak traffic periods?",
-      choices: [
-        { label: "Very well aligned", desc: "Data-driven scheduling, minimal overstaffing", weight: 0.02 },
-        { label: "Mostly aligned", desc: "Some gaps but generally appropriate coverage", weight: 0.05 },
-        { label: "Often misaligned", desc: "Visibly over or understaffed at key times", weight: 0.09 },
-        { label: "No real system", desc: "Scheduling is not tied to traffic data", weight: 0.13 },
-      ]},
-    { id: "customer_loyalty", category: "Retention",
-      question: "How strong is your customer loyalty and repeat purchase rate?",
-      choices: [
-        { label: "Very strong", desc: "Loyalty program, high repeat rate, strong LTV", weight: 0.01 },
-        { label: "Decent", desc: "Some repeat customers but no formal program", weight: 0.04 },
-        { label: "Low repeat rate", desc: "Most customers are one-time purchasers", weight: 0.08 },
-        { label: "No focus on it", desc: "No strategy for driving repeat business", weight: 0.12 },
-      ]},
-    { id: "recurring_revenue", category: "Revenue Model",
-      question: "Do you have any subscription, membership, or recurring revenue programs?",
-      choices: [
-        { label: "Yes — meaningful program", desc: "Subscriptions or memberships generating regular revenue", weight: 0.00 },
-        { label: "Small / early stage", desc: "Something in place but not yet impactful", weight: 0.04 },
-        { label: "Not yet", desc: "Considering it but nothing launched", weight: 0.07 },
-        { label: "None at all", desc: "100% transactional, no recurring component", weight: 0.10 },
-      ]},
-    { id: "inventory_forecasting", category: "Forecasting",
-      question: "How accurately do you forecast inventory needs and monthly sales?",
-      choices: [
-        { label: "Very accurately", desc: "Data-driven forecasting, minimal overstock/stockouts", weight: 0.01 },
-        { label: "Roughly", desc: "Decent feel for demand, some surprises", weight: 0.03 },
-        { label: "Often off", desc: "Frequent overstock or missed sales from stockouts", weight: 0.07 },
-        { label: "Not really forecasted", desc: "Inventory and sales are reactive, not planned", weight: 0.10 },
-      ]},
+    { id: "demand",    label: "Traffic & Visitor Conversion",   category: "Demand",        clientScore: 42, benchmarkScore: 72, leakagePct: 0.09 },
+    { id: "sales",     label: "Average Transaction Value",      category: "Sales",         clientScore: 50, benchmarkScore: 74, leakagePct: 0.08 },
+    { id: "billing",   label: "Upsell & Bundle Capture",        category: "Billing",       clientScore: 35, benchmarkScore: 68, leakagePct: 0.07 },
+    { id: "labor",     label: "Staff Scheduling vs. Traffic",   category: "Labor",         clientScore: 45, benchmarkScore: 73, leakagePct: 0.06 },
+    { id: "retention", label: "Customer Loyalty & Repeat Rate", category: "Retention",     clientScore: 38, benchmarkScore: 70, leakagePct: 0.09 },
+    { id: "recurring", label: "Subscription / Membership",      category: "Revenue Model", clientScore: 12, benchmarkScore: 48, leakagePct: 0.08 },
   ],
-
   healthcare: [
-    { id: "no_show_rate", category: "Demand",
-      question: "What is your typical no-show and late cancellation rate?",
-      choices: [
-        { label: "Under 5%", desc: "Strong confirmation process, rare no-shows", weight: 0.01 },
-        { label: "5–10%", desc: "Manageable but some revenue lost to no-shows", weight: 0.04 },
-        { label: "10–20%", desc: "Significant revenue regularly lost to no-shows", weight: 0.08 },
-        { label: "Above 20%", desc: "No-shows are a major and unaddressed problem", weight: 0.13 },
-      ]},
-    { id: "new_patient_conversion", category: "Sales",
-      question: "How effectively does your front desk convert new patient inquiries into scheduled appointments?",
-      choices: [
-        { label: "Very effectively", desc: "High conversion, scripted intake, minimal leakage", weight: 0.01 },
-        { label: "Decent", desc: "Good conversion but some calls/leads are lost", weight: 0.04 },
-        { label: "Room to improve", desc: "Noticeable drop-off between inquiry and booking", weight: 0.08 },
-        { label: "No real process", desc: "Conversion is not tracked or systematized", weight: 0.11 },
-      ]},
-    { id: "billing_accuracy", category: "Billing",
-      question: "How would you describe your billing, coding accuracy, and insurance denial rate?",
-      choices: [
-        { label: "Clean — low denial rate", desc: "Well-managed RCM, denials under 5%", weight: 0.01 },
-        { label: "Acceptable", desc: "Some denials, manageable with current process", weight: 0.05 },
-        { label: "Higher than it should be", desc: "Denials and write-offs are impacting collections", weight: 0.09 },
-        { label: "Significant problem", desc: "Billing issues are materially reducing revenue", weight: 0.13 },
-      ]},
-    { id: "provider_utilization", category: "Labor",
-      question: "How fully booked is your provider schedule on a typical day?",
-      choices: [
-        { label: "90%+ utilization", desc: "Providers are fully productive with minimal gaps", weight: 0.02 },
-        { label: "75–90%", desc: "Good utilization with some open slots", weight: 0.05 },
-        { label: "Below 75%", desc: "Meaningful provider capacity going unbilled", weight: 0.09 },
-        { label: "Under 60%", desc: "Significant capacity wasted — major revenue gap", weight: 0.14 },
-      ]},
-    { id: "patient_retention", category: "Retention",
-      question: "How well do you retain patients for follow-up visits and ongoing care?",
-      choices: [
-        { label: "Very well", desc: "High follow-up rate, proactive recall system", weight: 0.01 },
-        { label: "Decent", desc: "Most patients return but no formal recall system", weight: 0.04 },
-        { label: "Low retention", desc: "Many patients don't return after initial visit", weight: 0.08 },
-        { label: "No system for it", desc: "No patient recall or retention process in place", weight: 0.12 },
-      ]},
-    { id: "ancillary_revenue", category: "Revenue Model",
-      question: "Do you offer any ancillary, elective, or wellness services beyond core visits?",
-      choices: [
-        { label: "Yes — meaningful revenue", desc: "Ancillary services contributing 10%+ of revenue", weight: 0.00 },
-        { label: "Some, not maximized", desc: "A few offerings but not promoted or tracked", weight: 0.04 },
-        { label: "Minimal", desc: "Core visits only, minimal ancillary capture", weight: 0.07 },
-        { label: "None", desc: "No ancillary or elective revenue streams at all", weight: 0.10 },
-      ]},
-    { id: "revenue_forecast", category: "Forecasting",
-      question: "How accurately can you forecast monthly patient revenue?",
-      choices: [
-        { label: "Very accurately", desc: "Solid forward-looking view from schedule and pipeline", weight: 0.01 },
-        { label: "Roughly", desc: "Decent estimate, some variability", weight: 0.03 },
-        { label: "Difficult", desc: "Revenue varies significantly and is hard to predict", weight: 0.07 },
-        { label: "Not really tracked", desc: "No proactive revenue forecasting in place", weight: 0.09 },
-      ]},
+    { id: "demand",    label: "No-Show & Cancellation Rate",    category: "Demand",        clientScore: 40, benchmarkScore: 76, leakagePct: 0.10 },
+    { id: "sales",     label: "New Patient Conversion",         category: "Sales",         clientScore: 52, benchmarkScore: 74, leakagePct: 0.07 },
+    { id: "billing",   label: "Claims Accuracy & Denials",      category: "Billing",       clientScore: 48, benchmarkScore: 78, leakagePct: 0.09 },
+    { id: "labor",     label: "Provider Schedule Utilization",  category: "Labor",         clientScore: 62, benchmarkScore: 85, leakagePct: 0.10 },
+    { id: "retention", label: "Patient Retention & Recall",     category: "Retention",     clientScore: 44, benchmarkScore: 72, leakagePct: 0.08 },
+    { id: "recurring", label: "Ancillary & Elective Revenue",   category: "Revenue Model", clientScore: 20, benchmarkScore: 58, leakagePct: 0.07 },
   ],
-
   remodel: [
-    { id: "lead_response", category: "Demand",
-      question: "When a new remodel or custom home inquiry comes in, how quickly do you respond?",
-      choices: [
-        { label: "Within hours — always", desc: "Same-day response is a firm standard", weight: 0.01 },
-        { label: "Within 24 hours", desc: "Typically respond next business day", weight: 0.04 },
-        { label: "A few days", desc: "Response time slips during busy periods", weight: 0.08 },
-        { label: "No real standard", desc: "Inconsistent follow-up on new inquiries", weight: 0.11 },
-      ]},
-    { id: "proposal_close_rate", category: "Sales",
-      question: "What is your close rate on design consultations or project proposals?",
-      choices: [
-        { label: "Above 60%", desc: "Strong conversion — proposals land consistently", weight: 0.01 },
-        { label: "40–60%", desc: "Solid rate with room to improve", weight: 0.04 },
-        { label: "Below 40%", desc: "Too many proposals that don't convert", weight: 0.08 },
-        { label: "Not tracked", desc: "No visibility into proposal win/loss data", weight: 0.10 },
-      ]},
-    { id: "change_orders", category: "Billing",
-      question: "How consistently do you document and bill for change orders and scope additions?",
-      choices: [
-        { label: "Every time — no exceptions", desc: "Signed change orders before any additional work", weight: 0.01 },
-        { label: "Mostly", desc: "Occasional verbal approvals that go unbilled", weight: 0.05 },
-        { label: "Often absorbed", desc: "Scope additions frequently aren't billed", weight: 0.09 },
-        { label: "Rarely formalized", desc: "Change orders are not a defined part of our process", weight: 0.13 },
-      ]},
-    { id: "subcontractor_mgmt", category: "Labor",
-      question: "How well do you manage subcontractors, timelines, and project cost control?",
-      choices: [
-        { label: "Very tightly managed", desc: "Budget tracking, milestone check-ins, on-time delivery", weight: 0.02 },
-        { label: "Mostly on track", desc: "Some overruns but generally controlled", weight: 0.05 },
-        { label: "Frequent overruns", desc: "Timeline and cost overruns are common", weight: 0.10 },
-        { label: "Significant problems", desc: "Project overruns regularly impact profitability", weight: 0.14 },
-      ]},
-    { id: "referral_rate", category: "Retention",
-      question: "How consistently do past clients refer new projects to you?",
-      choices: [
-        { label: "Referrals are our #1 source", desc: "Systematic referral process with strong results", weight: 0.01 },
-        { label: "Some referrals", desc: "Happy clients refer occasionally but informally", weight: 0.04 },
-        { label: "Rarely", desc: "Few referrals despite delivering good work", weight: 0.08 },
-        { label: "Almost never", desc: "No focus on generating referrals from past clients", weight: 0.12 },
-      ]},
-    { id: "recurring_clients", category: "Revenue Model",
-      question: "Do you have a structured program for past clients (referral incentives, VIP maintenance, etc.)?",
-      choices: [
-        { label: "Yes — active program", desc: "Structured follow-up and referral system in place", weight: 0.00 },
-        { label: "Informal outreach", desc: "Touch base occasionally but no system", weight: 0.04 },
-        { label: "Rarely stay in touch", desc: "Projects end and clients go quiet", weight: 0.07 },
-        { label: "Nothing in place", desc: "No post-project engagement at all", weight: 0.10 },
-      ]},
-    { id: "pipeline_visibility", category: "Forecasting",
-      question: "How clearly can you see your project pipeline and forecast revenue 60–90 days ahead?",
-      choices: [
-        { label: "Very clear", desc: "Solid visibility into signed, proposed, and potential work", weight: 0.01 },
-        { label: "Roughly", desc: "Know what's likely but some uncertainty", weight: 0.03 },
-        { label: "Hard to forecast", desc: "Pipeline is too variable to plan around confidently", weight: 0.07 },
-        { label: "No real visibility", desc: "Revenue planning is largely reactive", weight: 0.09 },
-      ]},
+    { id: "demand",    label: "Lead Response & Qualification",  category: "Demand",        clientScore: 46, benchmarkScore: 76, leakagePct: 0.08 },
+    { id: "sales",     label: "Proposal Close Rate",            category: "Sales",         clientScore: 44, benchmarkScore: 70, leakagePct: 0.09 },
+    { id: "billing",   label: "Change Order Capture",           category: "Billing",       clientScore: 36, benchmarkScore: 74, leakagePct: 0.11 },
+    { id: "labor",     label: "Subcontractor & Timeline Mgmt",  category: "Labor",         clientScore: 42, benchmarkScore: 72, leakagePct: 0.10 },
+    { id: "retention", label: "Referral Rate",                  category: "Retention",     clientScore: 45, benchmarkScore: 74, leakagePct: 0.08 },
+    { id: "recurring", label: "Past Client Re-Engagement",      category: "Revenue Model", clientScore: 18, benchmarkScore: 56, leakagePct: 0.06 },
   ],
 };
 
-const CATEGORY_FIXES = {
-  Demand: ["Set up a missed-call text-back system (Hatch, Podium, or Keap)", "Enforce a response SLA — first contact within 5 minutes", "Build a 5-touch follow-up sequence for every unconverted inquiry"],
-  Sales: ["Review pricing quarterly vs. local market — most SMBs are undercharging", "Track your close rate weekly — what gets measured improves", "Call every prospect within 24 hours of sending a proposal"],
-  Billing: ["Invoice or collect on-site or within the same day of job completion", "Require documented approval before performing any out-of-scope work", "Automate payment reminders at 7, 14, and 30 days past due"],
-  Labor: ["Use scheduling software to maximize utilization and cut idle time", "Track hours per job against estimate and flag overruns in real time", "Run a weekly inefficiency review to eliminate recurring issues"],
-  Retention: ["Launch a structured referral program with a small client incentive", "Automate a post-job or post-visit follow-up within 24 hours", "Build a touch cadence for your top 20% of clients"],
-  "Revenue Model": ["Develop a tiered service agreement or membership program", "Identify your top 30 clients and pitch an ongoing engagement", "Model the impact of moving 10% of project revenue to retainer"],
-  Forecasting: ["Hold a 30-minute weekly pipeline review — closing, stalled, at-risk", "Use a CRM or shared spreadsheet to track all active opportunities", "Set monthly revenue targets and review actuals vs. forecast each month"],
+const ACTION_DEFAULTS = {
+  demand:    ["Set up missed-call text-back system (Hatch, Podium)", "Enforce 5-minute first-response SLA on all new inquiries", "Build a 5-touch follow-up sequence for unconverted leads"],
+  sales:     ["Call every prospect within 24 hours of sending a proposal", "Review pricing quarterly vs. local market comps", "Track close rate weekly — designate an owner"],
+  billing:   ["Invoice same-day or on-site for all completed work", "Require documented sign-off before any out-of-scope work", "Automate payment reminders at 7, 14, and 30 days past due"],
+  labor:     ["Implement dispatch software to optimize routing and scheduling", "Track hours per job vs. estimate — flag overruns in real time", "Run a weekly rework/inefficiency review with field leads"],
+  retention: ["Launch a structured referral program with a client incentive", "Automate a 24-hour post-job follow-up and review request", "Create a re-engagement sequence for clients 90+ days inactive"],
+  recurring: ["Build a tiered service agreement with 2–3 pricing options", "Pitch existing top-30 clients on an ongoing engagement", "Model the revenue impact of moving 10% of work to retainer"],
 };
 
-function calcLeakage(revenue, answers) {
-  const questions = Object.values(INDUSTRY_QUESTIONS).flat();
-  let gaps = [];
-  Object.entries(answers).forEach(([id, chosen]) => {
-    const q = questions.find(q => q.id === id);
-    if (!q) return;
-    const choice = q.choices.find(c => c.label === chosen.label);
-    if (!choice) return;
-    const leakage = revenue * choice.weight;
-    if (choice.weight > 0.02) gaps.push({ category: q.category, question: q.question, answer: chosen.label, leakage, weight: choice.weight });
-  });
-  gaps.sort((a, b) => b.leakage - a.leakage);
-  const topGaps = gaps.slice(0, 4);
-  const totalLeakage = topGaps.reduce((s, g) => s + g.leakage, 0);
-  const avgWeight = gaps.reduce((s, g) => s + g.weight, 0) / Math.max(gaps.length, 1);
-  const healthScore = Math.max(12, Math.round(100 - avgWeight * 600));
-  return { totalLeakage, topGaps, healthScore };
+const CAT_COLORS = { Demand: "#0066FF", Sales: "#7C3AED", Billing: "#D97706", Labor: "#DC2626", Retention: "#22A05A", "Revenue Model": "#0891B2" };
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+const fmt = n => n >= 1000000 ? "$" + (n / 1000000).toFixed(2) + "M" : n >= 1000 ? "$" + Math.round(n / 1000).toLocaleString() + "K" : "$" + Math.round(n).toLocaleString();
+const fmtNum = n => n >= 1000000 ? (n / 1000000).toFixed(1) + "M" : n >= 1000 ? Math.round(n / 1000) + "K" : String(Math.round(n));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const today = () => new Date().toISOString().slice(0, 10);
+
+function calcHealth(areas) {
+  const avg = areas.reduce((s, a) => s + a.clientScore, 0) / areas.length;
+  return Math.round(avg);
 }
 
-const fmt = n => n >= 1000000 ? "$" + (n / 1000000).toFixed(2) + "M" : "$" + Math.round(n / 1000).toLocaleString() + "K";
-
-function sevColor(weight) {
-  if (weight >= 0.09) return { color: "#DC2626", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.2)", label: "Critical" };
-  if (weight >= 0.06) return { color: "#0066FF", bg: "rgba(0,102,255,0.08)", border: "rgba(0,102,255,0.2)", label: "High" };
-  if (weight >= 0.03) return { color: "#D97706", bg: "rgba(217,119,6,0.08)", border: "rgba(217,119,6,0.2)", label: "Moderate" };
-  return { color: "#22A05A", bg: "rgba(34,160,90,0.08)", border: "rgba(34,160,90,0.2)", label: "Low" };
+function calcLeakage(revenue, areas) {
+  return areas.reduce((s, a) => s + revenue * a.leakagePct * Math.max(0, (a.benchmarkScore - a.clientScore) / a.benchmarkScore), 0);
 }
 
-function scoreColor(s) {
-  if (s >= 70) return "#22A05A";
-  if (s >= 50) return "#D97706";
-  return "#DC2626";
-}
-
-export default function RevAudit() {
-  const [step, setStep] = useState(0);
-  const [qIndex, setQIndex] = useState(0);
-  const [companyName, setCompanyName] = useState("");
-  const [revenue, setRevenue] = useState("");
-  const [industry, setIndustry] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [results, setResults] = useState(null);
-  const [insights, setInsights] = useState(null);
-
-  const questions = industry ? INDUSTRY_QUESTIONS[industry] : [];
-  const currentQ = questions[qIndex];
-  const selectedChoice = answers[currentQ?.id];
-  const revenueNum = parseFloat(revenue.replace(/[^0-9.]/g, "")) || 0;
-  const setupValid = companyName.trim() && revenueNum > 0 && industry;
-  const industryObj = INDUSTRIES.find(i => i.key === industry);
-
-  const reset = () => { setStep(0); setQIndex(0); setAnswers({}); setResults(null); setInsights(null); };
-
-  const generateReport = useCallback(async () => {
-    setStep(2);
-    const calc = calcLeakage(revenueNum, answers);
-    const answerList = Object.entries(answers).map(([id, choice]) => {
-      const allQ = Object.values(INDUSTRY_QUESTIONS).flat();
-      const q = allQ.find(q => q.id === id);
-      return { question: q?.question || id, answer: choice.label };
+function makeClient(name, industry, revenue, contact = "") {
+  const areas = (AREA_DEFAULTS[industry] || AREA_DEFAULTS.electrical).map(a => ({ ...a }));
+  const actions = [];
+  areas.forEach(area => {
+    const defs = ACTION_DEFAULTS[area.id] || [];
+    defs.forEach((title, i) => {
+      actions.push({
+        id: uid(), areaId: area.id, title,
+        status: "open",
+        priority: i === 0 ? "critical" : i === 1 ? "high" : "moderate",
+        expectedRevenue: Math.round(revenue * area.leakagePct * 0.35),
+        recoveredRevenue: 0, notes: "", completedAt: null,
+      });
     });
-    let insightData = null;
+  });
+  return {
+    id: uid(), name, contact, industry, revenue,
+    createdAt: today(), lastContact: today(),
+    areas, actions,
+    snapshots: [{ date: today(), healthScore: calcHealth(areas), totalLeakage: calcLeakage(revenue, areas), recoveredRevenue: 0 }],
+    intelligence: null,
+  };
+}
+
+const DEMO_CLIENTS = [
+  makeClient("Precision Electric Co.", "electrical", 1400000, "Ryan Mitchell"),
+  makeClient("Summit HVAC", "hvac", 2100000, "Dana Torres"),
+];
+
+// ─────────────────────────────────────────────
+// localStorage
+// ─────────────────────────────────────────────
+function loadClients() {
+  try { const s = localStorage.getItem("ra_clients"); return s ? JSON.parse(s) : DEMO_CLIENTS; } catch { return DEMO_CLIENTS; }
+}
+function saveClients(clients) {
+  try { localStorage.setItem("ra_clients", JSON.stringify(clients)); } catch {}
+}
+
+// ─────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────
+function EditableValue({ value, onChange, prefix = "", suffix = "", mono = true, className = "" }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const commit = () => { const n = parseFloat(draft.replace(/[^0-9.]/g, "")); if (!isNaN(n)) onChange(n); setEditing(false); };
+  if (editing) return <input className="edit-input" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }} autoFocus />;
+  return <span className={`editable ${className}`} title="Click to edit" onClick={() => { setDraft(String(value)); setEditing(true); }}>{prefix}{typeof value === "number" && value > 999 ? value.toLocaleString() : value}{suffix}</span>;
+}
+
+function ScoreBar({ clientScore, benchmarkScore, color }) {
+  return (
+    <div className="score-track">
+      <div className="score-bar-client" style={{ width: clientScore + "%", background: color || "#0066FF", height: 8, borderRadius: 4 }} />
+      <div className="score-marker" style={{ left: benchmarkScore + "%" }}>
+        <div className="score-marker-label">Benchmark</div>
+      </div>
+    </div>
+  );
+}
+
+function CatPill({ category }) {
+  const c = CAT_COLORS[category] || "#8A9AB5";
+  return <span className="cat-pill" style={{ background: c + "18", color: c }}>{category}</span>;
+}
+
+function StatusBtn({ status, onClick }) {
+  const map = { open: ["status-open", "Open"], in_progress: ["status-progress", "In Progress"], done: ["status-done", "Done"] };
+  const [cls, label] = map[status] || map.open;
+  return <button className={`status-badge ${cls}`} onClick={onClick}>{label}</button>;
+}
+
+function HealthRing({ score, size = 100 }) {
+  const r = 38; const circ = 2 * Math.PI * r;
+  const pct = Math.min(100, Math.max(0, score));
+  const color = score >= 65 ? "#22A05A" : score >= 45 ? "#D97706" : "#DC2626";
+  return (
+    <div className="health-ring" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="8" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="8"
+          strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)}
+          strokeLinecap="round" transform="rotate(-90 50 50)" style={{ transition: "stroke-dashoffset .5s" }} />
+      </svg>
+      <div className="health-ring-text">
+        <div className="health-num" style={{ color }}>{score}</div>
+        <div className="health-denom">/100</div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SECTIONS
+// ─────────────────────────────────────────────
+
+function OverviewSection({ client, onUpdateArea }) {
+  const health = calcHealth(client.areas);
+  const leakage = calcLeakage(client.revenue, client.areas);
+  const recovered = client.actions.filter(a => a.status === "done").reduce((s, a) => s + (a.recoveredRevenue || 0), 0);
+  const openActions = client.actions.filter(a => a.status !== "done").length;
+
+  const chartData = client.areas.map(a => ({
+    name: a.label.split(" ")[0],
+    client: a.clientScore,
+    benchmark: a.benchmarkScore,
+  }));
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Revenue Dashboard</div>
+          <div className="section-sub">{client.name} · {INDUSTRIES.find(i => i.key === client.industry)?.label} · {fmt(client.revenue)} annual revenue</div>
+        </div>
+        <div style={{ fontSize: 12, color: "#A0ADC0" }}>Last updated {client.lastContact}</div>
+      </div>
+
+      {/* Hero row */}
+      <div className="grid-4" style={{ marginBottom: 24 }}>
+        <div className="card-dark" style={{ gridColumn: "span 1" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: ".1em", fontWeight: 700 }}>Health Score</div>
+          </div>
+          <HealthRing score={health} size={88} />
+        </div>
+        <div className="card">
+          <div className="metric-label">Est. Leakage / Year</div>
+          <div className="metric-value" style={{ color: "#DC2626", fontSize: 26 }}>{fmt(leakage)}</div>
+          <div className="metric-sub">{fmt(leakage / 12)} per month</div>
+          <div className="metric-delta delta-down">↓ Revenue at risk</div>
+        </div>
+        <div className="card">
+          <div className="metric-label">Revenue Recovered</div>
+          <div className="metric-value" style={{ color: "#22A05A", fontSize: 26 }}>{fmt(recovered)}</div>
+          <div className="metric-sub">{client.actions.filter(a => a.status === "done").length} actions closed</div>
+          {recovered > 0 && <div className="metric-delta delta-up">↑ Captured this engagement</div>}
+        </div>
+        <div className="card">
+          <div className="metric-label">Open Action Items</div>
+          <div className="metric-value" style={{ fontSize: 26 }}>{openActions}</div>
+          <div className="metric-sub">{client.actions.filter(a => a.status === "in_progress").length} in progress</div>
+          <div className="metric-delta delta-neutral">{client.areas.length} areas assessed</div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#0D0D0D", letterSpacing: "-0.01em" }}>Performance vs. Industry Benchmark</div>
+            <div style={{ fontSize: 12, color: "#A0ADC0", marginTop: 3 }}>Blue = your score · Gray = top-performer benchmark</div>
+          </div>
+          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#A0ADC0" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: "#0066FF", display: "inline-block" }} /> Your Score</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: "#E4EAF4", display: "inline-block" }} /> Benchmark</span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData} barCategoryGap="30%" barGap={4}>
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#A0ADC0", fontWeight: 600 }} axisLine={false} tickLine={false} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#C0CAD8" }} axisLine={false} tickLine={false} />
+            <Tooltip formatter={(v, n) => [v + "/100", n === "client" ? "Your Score" : "Benchmark"]} contentStyle={{ borderRadius: 12, border: "1px solid #E4EAF4", fontSize: 12 }} />
+            <Bar dataKey="client" radius={[4, 4, 0, 0]}>
+              {chartData.map((_, i) => <Cell key={i} fill="#0066FF" />)}
+            </Bar>
+            <Bar dataKey="benchmark" radius={[4, 4, 0, 0]}>
+              {chartData.map((_, i) => <Cell key={i} fill="#E4EAF4" />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Gap summary */}
+      <div className="grid-3">
+        {client.areas.map(area => {
+          const gap = area.benchmarkScore - area.clientScore;
+          const leakAmt = client.revenue * area.leakagePct * Math.max(0, gap / area.benchmarkScore);
+          const color = CAT_COLORS[area.category] || "#0066FF";
+          return (
+            <div key={area.id} className="card" style={{ padding: "18px 20px" }}>
+              <CatPill category={area.category} />
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#0D0D0D", marginBottom: 10, lineHeight: 1.3 }}>{area.label}</div>
+              <ScoreBar clientScore={area.clientScore} benchmarkScore={area.benchmarkScore} color={color} />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "#A0ADC0" }}>
+                <span>Score: <strong style={{ color: "#0D0D0D" }}>{area.clientScore}</strong></span>
+                <span style={{ color: "#DC2626", fontWeight: 700, fontFamily: "'DM Mono',monospace" }}>−{fmt(leakAmt)}/yr</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function RevenueGapsSection({ client, onUpdateArea }) {
+  const [selected, setSelected] = useState(null);
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Revenue Gap Analysis</div>
+          <div className="section-sub">Click any area to edit scores. Blue bar = current · Benchmark line = top performers in your market.</div>
+        </div>
+        <div style={{ fontSize: 11, color: "#A0ADC0", textAlign: "right" }}>All scores editable<br /><span style={{ color: "#0066FF", fontWeight: 600 }}>Click to update</span></div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {client.areas.map(area => {
+          const gap = area.benchmarkScore - area.clientScore;
+          const leakAmt = client.revenue * area.leakagePct * Math.max(0, gap / area.benchmarkScore);
+          const color = CAT_COLORS[area.category] || "#0066FF";
+          const isOpen = selected === area.id;
+
+          return (
+            <div key={area.id} className={`area-card ${isOpen ? "selected" : ""}`} onClick={() => setSelected(isOpen ? null : area.id)}>
+              <div className="area-header">
+                <div>
+                  <CatPill category={area.category} />
+                  <div className="area-name">{area.label}</div>
+                </div>
+                <div>
+                  <div className="area-leakage" style={{ color }}>{fmt(leakAmt)}</div>
+                  <div className="area-leakage-label">est. / year</div>
+                </div>
+              </div>
+
+              <div className="score-row">
+                <div className="score-row-header">
+                  <span className="score-name">Performance Score</span>
+                  <span className="score-nums">
+                    <span style={{ color }}>Your score: {area.clientScore}</span>
+                    <span>·</span>
+                    <span>Benchmark: {area.benchmarkScore}</span>
+                  </span>
+                </div>
+                <ScoreBar clientScore={area.clientScore} benchmarkScore={area.benchmarkScore} color={color} />
+              </div>
+
+              {isOpen && (
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F0F4FB", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} onClick={e => e.stopPropagation()}>
+                  {[
+                    { label: "Client Score (0–100)", key: "clientScore", suffix: "" },
+                    { label: "Benchmark Score (0–100)", key: "benchmarkScore", suffix: "" },
+                    { label: "Leakage % of Revenue", key: "leakagePct", suffix: "%" },
+                  ].map(({ label, key, suffix }) => (
+                    <div key={key}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#A0ADC0", textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 6 }}>{label}</div>
+                      <EditableValue
+                        value={key === "leakagePct" ? Math.round(area[key] * 100) : area[key]}
+                        onChange={v => onUpdateArea(area.id, key, key === "leakagePct" ? v / 100 : v)}
+                        suffix={suffix}
+                        className=""
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MarketIntelSection({ client, onUpdateIntel }) {
+  const [loading, setLoading] = useState(false);
+
+  const fetchIntel = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ industry, revenue: revenueNum, answers: answerList }),
+        body: JSON.stringify({
+          industry: client.industry,
+          revenue: client.revenue,
+          answers: client.areas.map(a => ({ question: a.label, answer: `Current score: ${a.clientScore}/100 vs. benchmark ${a.benchmarkScore}/100` })),
+        }),
       });
-      if (res.ok) insightData = await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        onUpdateIntel({ ...data, lastFetched: today() });
+      }
     } catch (e) {}
-    setResults(calc);
-    setInsights(insightData);
-    setStep(3);
-  }, [answers, revenueNum, industry]);
+    setLoading(false);
+  }, [client, onUpdateIntel]);
 
-  const progressPct = step === 0 ? 0 : step === 1 ? ((qIndex + 1) / questions.length) * 85 : step === 2 ? 93 : 100;
+  const intel = client.intelligence;
 
   return (
-    <div className="root">
-      <style>{CSS}</style>
-      <div className="wrap">
-
-        {/* Header */}
-        <div className="header">
-          <div className="kc-label">Kuharski Capital</div>
-          <div className="app-title" style={{ cursor: step > 0 ? "pointer" : "default" }} onClick={step > 0 ? reset : undefined}>
-            RevAudit™
-          </div>
-          <div className="app-sub">Revenue Leakage Intelligence</div>
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">What the Market Is Telling Us</div>
+          <div className="section-sub">Live intelligence for the {INDUSTRIES.find(i => i.key === client.industry)?.label} industry. Refresh weekly to stay ahead.</div>
         </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+          {intel?.lastFetched && <div style={{ fontSize: 11, color: "#A0ADC0" }}>Last fetched: {intel.lastFetched}</div>}
+          <button className="topbar-btn btn-primary btn-sm" onClick={fetchIntel} disabled={loading}>
+            {loading ? "Fetching…" : "↻ Refresh Intelligence"}
+          </button>
+        </div>
+      </div>
 
-        {/* Progress */}
-        {step > 0 && step < 3 && (
-          <div className="progress-wrap no-print">
-            <div className="progress-label">
-              <span>{step === 1 ? `Question ${qIndex + 1} of ${questions.length}` : "Generating report…"}</span>
-              <span>{Math.round(progressPct)}%</span>
+      {!intel && (
+        <div className="card" style={{ textAlign: "center", padding: "48px 32px" }}>
+          <div style={{ fontSize: 32, marginBottom: 14 }}>◎</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#0D0D0D", marginBottom: 6 }}>No intelligence loaded yet</div>
+          <div style={{ fontSize: 13, color: "#8A9AB5", marginBottom: 20 }}>Fetch live market data to see what's driving growth in the {INDUSTRIES.find(i => i.key === client.industry)?.label} sector right now.</div>
+          <button className="topbar-btn btn-primary" onClick={fetchIntel} disabled={loading}>{loading ? "Fetching…" : "Fetch Market Intelligence"}</button>
+        </div>
+      )}
+
+      {intel && (
+        <div>
+          {intel.industryContext && (
+            <div className="intel-card" style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: "#0066FF", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 10 }}>Industry Context</div>
+              <div style={{ fontSize: 14, color: "#4A5568", lineHeight: 1.75 }}>{intel.industryContext}</div>
             </div>
-            <div className="progress-track"><div className="progress-fill" style={{ width: progressPct + "%" }} /></div>
+          )}
+          <div className="grid-3">
+            {intel.marketInsights?.map((mi, i) => (
+              <div key={i} className="intel-card" style={{ margin: 0 }}>
+                <div className="intel-stat">"{mi.stat}"</div>
+                <div className="intel-source">— {mi.source}</div>
+                <div className="intel-context">{mi.relevance}</div>
+              </div>
+            ))}
           </div>
-        )}
-
-        {/* ══ SETUP ══ */}
-        {step === 0 && (
-          <div>
-            <div className="intro-card">
-              <div className="intro-eyebrow">Revenue Diagnostic</div>
-              <div className="intro-headline">Find where revenue is leaking.</div>
-              <div className="intro-body">7 questions tailored to your industry. Under 3 minutes. Get a dollar-quantified gap report backed by live market intelligence.</div>
+          {intel.topOpportunity && (
+            <div className="opp-banner" style={{ marginTop: 10 }}>
+              <div className="opp-label">Top Opportunity Right Now</div>
+              <div className="opp-text">{intel.topOpportunity}</div>
             </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-            <div className="card">
-              <div className="setup-field">
-                <label className="field-label">Company Name</label>
-                <input className="ra-input text-input" placeholder="e.g. Precision Electric Co." value={companyName} onChange={e => setCompanyName(e.target.value)} />
-              </div>
-              <div className="setup-field">
-                <label className="field-label">Annual Revenue</label>
-                <div className="input-wrap">
-                  <span className="input-prefix">$</span>
-                  <input className="ra-input has-prefix" placeholder="1,200,000" value={revenue}
-                    onChange={e => setRevenue(e.target.value)}
-                    onBlur={e => { const n = parseFloat(e.target.value.replace(/[^0-9.]/g, "")); if (n) setRevenue(n.toLocaleString()); }} />
-                </div>
-                {revenueNum > 0 && <div className="rev-hint">{fmt(revenueNum)} annual revenue</div>}
-              </div>
-              <div>
-                <label className="field-label">Industry</label>
-                <div className="industry-grid">
-                  {INDUSTRIES.map(ind => (
-                    <button key={ind.key} className={"ind-btn" + (industry === ind.key ? " sel" : "")} onClick={() => { setIndustry(ind.key); setAnswers({}); setQIndex(0); }}>
-                      <div className="ind-icon-wrap">{IND_ICONS[ind.key]}</div>
-                      <span className="ind-label">{ind.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+function ActionPlanSection({ client, onUpdateAction }) {
+  const [filter, setFilter] = useState("all");
+  const [editingId, setEditingId] = useState(null);
+  const [recoveryDraft, setRecoveryDraft] = useState("");
 
-            <div style={{ marginTop: 14 }}>
-              <button className="btn-primary btn-blue" disabled={!setupValid} onClick={() => setStep(1)}>
-                Start Diagnostic →
-              </button>
-            </div>
+  const filtered = client.actions.filter(a => filter === "all" || a.status === filter);
+  const totalExpected = client.actions.reduce((s, a) => s + (a.expectedRevenue || 0), 0);
+  const totalRecovered = client.actions.filter(a => a.status === "done").reduce((s, a) => s + (a.recoveredRevenue || 0), 0);
+
+  const cycleStatus = (action) => {
+    const next = { open: "in_progress", in_progress: "done", done: "open" };
+    onUpdateAction(action.id, { status: next[action.status], completedAt: next[action.status] === "done" ? today() : null });
+  };
+
+  const areaLabel = (areaId) => client.areas.find(a => a.id === areaId)?.label || areaId;
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Action Plan</div>
+          <div className="section-sub">Track priorities, status, and revenue recovered per action item.</div>
+        </div>
+        <div style={{ display: "flex", gap: 20, fontSize: 13 }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontWeight: 800, color: "#0066FF", fontFamily: "'DM Mono',monospace" }}>{fmt(totalExpected)}</div>
+            <div style={{ fontSize: 11, color: "#A0ADC0", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Expected Recovery</div>
           </div>
-        )}
-
-        {/* ══ QUESTIONS ══ */}
-        {step === 1 && currentQ && (
-          <div>
-            <div className="card">
-              <div className="q-step-badge">
-                <span className="q-category-dot" />
-                {currentQ.category}
-              </div>
-              <div className="q-text">{currentQ.question}</div>
-              <div className="choices">
-                {currentQ.choices.map(choice => (
-                  <button key={choice.label} className={"choice" + (selectedChoice?.label === choice.label ? " sel" : "")}
-                    onClick={() => setAnswers(prev => ({ ...prev, [currentQ.id]: choice }))}>
-                    <div className="choice-dot"><div className="choice-dot-inner" /></div>
-                    <div className="choice-text">
-                      <span className="choice-label">{choice.label}</span>
-                      <span className="choice-desc">{choice.desc}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="btn-row">
-              <button className="btn-ghost" onClick={() => qIndex > 0 ? setQIndex(i => i - 1) : setStep(0)}>← Back</button>
-              <button className="btn-primary btn-blue" style={{ flex: 1 }} disabled={!selectedChoice}
-                onClick={() => qIndex < questions.length - 1 ? setQIndex(i => i + 1) : generateReport()}>
-                {qIndex < questions.length - 1 ? "Next →" : "Generate Report →"}
-              </button>
-            </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontWeight: 800, color: "#22A05A", fontFamily: "'DM Mono',monospace" }}>{fmt(totalRecovered)}</div>
+            <div style={{ fontSize: 11, color: "#A0ADC0", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Recovered</div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* ══ LOADING ══ */}
-        {step === 2 && (
-          <div className="loading-screen">
-            <div className="loading-icon">◎</div>
-            <div className="loading-title">Building your report…</div>
-            <div className="loading-sub">Searching for live {industryObj?.label} market data.</div>
-            <div className="loading-steps">
-              <div className="loading-step done"><div className="step-dot" />Diagnostic complete</div>
-              <div className="loading-step done"><div className="step-dot" />Leakage estimates calculated</div>
-              <div className="loading-step"><div className="step-dot" />Fetching market intelligence…</div>
-            </div>
-          </div>
-        )}
+      <div className="filter-tabs">
+        {[["all", "All"], ["open", "Open"], ["in_progress", "In Progress"], ["done", "Done"]].map(([val, label]) => (
+          <button key={val} className={`filter-tab ${filter === val ? "active" : ""}`} onClick={() => setFilter(val)}>
+            {label} {val !== "all" && <span style={{ marginLeft: 4, opacity: .6 }}>{client.actions.filter(a => a.status === val).length}</span>}
+          </button>
+        ))}
+      </div>
 
-        {/* ══ RESULTS ══ */}
-        {step === 3 && results && (
-          <div>
-            <div className="card-hero">
-              <div className="hero-company">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{IND_ICONS[industry]?.props?.children}</svg>
-                <span style={{ fontSize: 13, color: "#555", fontWeight: 500 }}>{companyName} · {industryObj?.label}</span>
-              </div>
-              <div className="hero-eyebrow">Estimated Annual Leakage</div>
-              <div className="hero-number">{fmt(results.totalLeakage)}</div>
-              <div className="hero-sub">≈ {Math.round((results.totalLeakage / revenueNum) * 100)}% of revenue &nbsp;·&nbsp; {fmt(results.totalLeakage / 12)}/mo</div>
-              <div className="stat-row">
-                <div className="stat-item">
-                  <div className="stat-val" style={{ color: scoreColor(results.healthScore) }}>{results.healthScore}</div>
-                  <div className="stat-label">Health Score</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-val">{results.topGaps.length}</div>
-                  <div className="stat-label">Gaps Found</div>
-                </div>
-                <div className="stat-item">
-                  <div className="stat-val" style={{ fontSize: 16 }}>{fmt(revenueNum)}</div>
-                  <div className="stat-label">Revenue</div>
-                </div>
-              </div>
-            </div>
+      {filtered.length === 0 && (
+        <div className="empty"><div className="empty-icon">✓</div><div className="empty-title">All clear in this category</div></div>
+      )}
 
-            <div className="section-label" style={{ marginTop: 28 }}>Revenue Gaps Identified</div>
-            {results.topGaps.map((gap, i) => {
-              const sev = sevColor(gap.weight);
-              const fixes = CATEGORY_FIXES[gap.category] || [];
-              return (
-                <div key={i} className="card card-sm">
-                  <div className="gap-header">
-                    <div style={{ flex: 1 }}>
-                      <span className="gap-category-pill" style={{ background: sev.bg, color: sev.color, border: "1px solid " + sev.border }}>{gap.category} · {sev.label}</span>
-                      <div className="gap-answer" style={{ marginTop: 8 }}>You said: <strong>"{gap.answer}"</strong></div>
-                    </div>
-                    <div style={{ marginLeft: 14 }}>
-                      <div className="gap-amount" style={{ color: sev.color }}>{fmt(gap.leakage)}</div>
-                      <div className="gap-amount-label">per year</div>
-                    </div>
-                  </div>
-                  {fixes.slice(0, 2).map((fix, j) => (
-                    <div key={j} className="fix-row"><span className="fix-check">✓</span><span className="fix-text">{fix}</span></div>
-                  ))}
-                </div>
-              );
-            })}
-
-            {insights && (
-              <div>
-                <div className="divider" />
-                <div className="section-label">What the {industryObj?.label} Market Is Saying</div>
-                {insights.industryContext && (
-                  <div className="card card-sm">
-                    <div style={{ fontSize: 14, color: "#4A5568", lineHeight: 1.75 }}>{insights.industryContext}</div>
-                  </div>
-                )}
-                {insights.marketInsights?.map((mi, i) => (
-                  <div key={i} className="card card-sm">
-                    <div className="insight-stat">"{mi.stat}"</div>
-                    <div className="insight-source">— {mi.source}</div>
-                    <div className="insight-context">{mi.relevance}</div>
-                  </div>
-                ))}
-                {insights.topOpportunity && (
-                  <div className="opp-banner">
-                    <div className="opp-label">Top Opportunity</div>
-                    <div className="opp-text">{insights.topOpportunity}</div>
-                  </div>
-                )}
+      {filtered.map(action => (
+        <div key={action.id} className={`action-item ${action.status === "done" ? "done" : ""}`}>
+          <div className={`priority-dot p-${action.priority}`} />
+          <div className="action-left">
+            <div className="action-title">{action.title}</div>
+            <div className="action-desc">{areaLabel(action.areaId)}</div>
+            {editingId === action.id && (
+              <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  className="edit-input" style={{ width: 140 }}
+                  placeholder="Recovered $"
+                  value={recoveryDraft}
+                  onChange={e => setRecoveryDraft(e.target.value)}
+                />
+                <button className="topbar-btn btn-primary btn-sm" onClick={() => {
+                  const v = parseFloat(recoveryDraft.replace(/[^0-9.]/g, ""));
+                  if (!isNaN(v)) onUpdateAction(action.id, { recoveredRevenue: v });
+                  setEditingId(null); setRecoveryDraft("");
+                }}>Save</button>
+                <button className="topbar-btn btn-ghost btn-sm" onClick={() => setEditingId(null)}>Cancel</button>
               </div>
             )}
-
-            <div className="divider" />
-            <div className="cta-card">
-              <div style={{ fontSize: 11, color: "#0066FF", textTransform: "uppercase", letterSpacing: "0.14em", fontWeight: 700, marginBottom: 10 }}>Next Step</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: "#0D0D0D", letterSpacing: "-0.04em", marginBottom: 8 }}>Full Revenue Diagnostic</div>
-              <div style={{ fontSize: 14, color: "#8A9AB5", lineHeight: 1.7, marginBottom: 24 }}>
-                This scan found <strong style={{ color: "#0D0D0D" }}>{fmt(results.totalLeakage)}</strong> in estimated leakage. A full audit goes deeper across every revenue category and delivers a 90-day action roadmap with dollar precision.
-              </div>
-              <div className="cta-features">
-                {["Full diagnostic across all revenue categories", "Dollar impact quantified for each gap", "Prioritized 90-day action roadmap", "Benchmark vs. industry top performers"].map(f => (
-                  <div key={f} className="cta-feature"><div className="cta-check">✓</div>{f}</div>
-                ))}
-              </div>
-              <div className="cta-price">$1,500</div>
-              <div className="cta-price-sub">Flat fee · Delivered in 5 business days</div>
-              <a href={`mailto:forrest@kuharskicapital.com?subject=Full Revenue Audit — ${companyName}`}
-                style={{ display: "block", marginTop: 24, padding: "18px", background: "#0066FF", borderRadius: 16, color: "#FFF", fontSize: 15, fontWeight: 800, textDecoration: "none", letterSpacing: "-0.01em", boxShadow: "0 8px 28px rgba(0,102,255,0.28)" }}>
-                Get the Full Audit →
-              </a>
-              <div className="cta-contact">forrest@kuharskicapital.com · kuharskicapital.com</div>
-            </div>
-
-            <div className="btn-row no-print" style={{ marginTop: 8 }}>
-              <button className="btn-ghost" onClick={reset}>← New Report</button>
-              <button className="btn-ghost" style={{ flex: 1 }} onClick={() => window.print()}>Save PDF</button>
-            </div>
           </div>
-        )}
+          <div className="action-right">
+            <StatusBtn status={action.status} onClick={() => cycleStatus(action)} />
+            <div>
+              <div className="action-impact" style={{ color: CAT_COLORS[client.areas.find(a => a.id === action.areaId)?.category] || "#0066FF" }}>
+                {fmt(action.expectedRevenue)}
+              </div>
+              <div style={{ fontSize: 9, color: "#A0ADC0", textAlign: "right", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em" }}>Expected</div>
+            </div>
+            {action.status === "done" && (
+              <div style={{ textAlign: "right" }}>
+                <div className="action-recovered"
+                  onClick={() => { setEditingId(action.id); setRecoveryDraft(String(action.recoveredRevenue || "")); }}
+                  style={{ cursor: "pointer" }} title="Click to edit recovered amount">
+                  {action.recoveredRevenue > 0 ? `+${fmt(action.recoveredRevenue)} recovered` : "Log recovery →"}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProgressSection({ client }) {
+  const recovered = client.actions.filter(a => a.status === "done").reduce((s, a) => s + (a.recoveredRevenue || 0), 0);
+  const doneActions = client.actions.filter(a => a.status === "done");
+  const health = calcHealth(client.areas);
+  const leakage = calcLeakage(client.revenue, client.areas);
+  const expectedTotal = client.actions.reduce((s, a) => s + (a.expectedRevenue || 0), 0);
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Progress Report</div>
+          <div className="section-sub">Engagement summary for {client.name}. Print or share this view with your client.</div>
+        </div>
+        <button className="topbar-btn btn-ghost" onClick={() => window.print()}>Print Report</button>
       </div>
+
+      <div className="grid-4" style={{ marginBottom: 20 }}>
+        {[
+          { label: "Current Health Score", value: health + "/100", color: health >= 65 ? "#22A05A" : health >= 45 ? "#D97706" : "#DC2626" },
+          { label: "Total Est. Leakage", value: fmt(leakage), color: "#DC2626" },
+          { label: "Revenue Recovered", value: fmt(recovered), color: "#22A05A" },
+          { label: "Actions Completed", value: doneActions.length + " / " + client.actions.length, color: "#0066FF" },
+        ].map(m => (
+          <div key={m.label} className="card" style={{ padding: "20px 22px" }}>
+            <div className="metric-label">{m.label}</div>
+            <div style={{ fontSize: 24, fontWeight: 900, fontFamily: "'DM Mono',monospace", color: m.color, letterSpacing: "-0.04em", marginTop: 6 }}>{m.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {doneActions.length > 0 && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0D0D0D", marginBottom: 16 }}>Completed Actions</div>
+          {doneActions.map(action => (
+            <div key={action.id} className="progress-row">
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#0D0D0D" }}>{action.title}</div>
+                <div style={{ fontSize: 11, color: "#A0ADC0" }}>{client.areas.find(a => a.id === action.areaId)?.label} · Completed {action.completedAt || "—"}</div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 16 }}>
+                {action.recoveredRevenue > 0
+                  ? <div style={{ fontSize: 14, fontWeight: 800, color: "#22A05A", fontFamily: "'DM Mono',monospace" }}>+{fmt(action.recoveredRevenue)}</div>
+                  : <div style={{ fontSize: 12, color: "#A0ADC0" }}>Recovery not logged</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {recovered > 0 && expectedTotal > 0 && (
+        <div className="card-dark" style={{ padding: "28px 32px" }}>
+          <div style={{ fontSize: 11, color: "#0066FF", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 10 }}>Engagement ROI</div>
+          <div style={{ fontSize: 40, fontWeight: 900, fontFamily: "'DM Mono',monospace", color: "#22A05A", letterSpacing: "-0.05em", lineHeight: 1, marginBottom: 6 }}>{fmt(recovered)}</div>
+          <div style={{ fontSize: 14, color: "#666" }}>recovered so far — {Math.round((recovered / expectedTotal) * 100)}% of the total {fmt(expectedTotal)} identified opportunity</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// New Client Modal
+// ─────────────────────────────────────────────
+function NewClientModal({ onSave, onClose }) {
+  const [form, setForm] = useState({ name: "", contact: "", industry: "electrical", revenue: "" });
+  const valid = form.name.trim() && parseFloat(form.revenue.replace(/[^0-9.]/g, "")) > 0;
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-title">New Client</div>
+        <div className="modal-sub">Pre-populated with industry benchmarks — edit any field live during your meeting.</div>
+        <div className="form-field">
+          <label className="form-label">Company Name</label>
+          <input className="form-input" placeholder="e.g. Apex Plumbing Co." value={form.name} onChange={e => set("name", e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label className="form-label">Contact Name</label>
+          <input className="form-input" placeholder="e.g. Mike Johnson" value={form.contact} onChange={e => set("contact", e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label className="form-label">Annual Revenue</label>
+          <input className="form-input" placeholder="e.g. 1,400,000" value={form.revenue} onChange={e => set("revenue", e.target.value)} />
+        </div>
+        <div className="form-field">
+          <label className="form-label">Industry</label>
+          <div className="ind-grid">
+            {INDUSTRIES.map(ind => (
+              <button key={ind.key} className={`ind-opt ${form.industry === ind.key ? "sel" : ""}`} onClick={() => set("industry", ind.key)}>
+                <svg viewBox="0 0 24 24">{IND_ICONS[ind.key]}</svg>
+                <div className="ind-opt-label">{ind.label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="modal-actions">
+          <button className="topbar-btn btn-ghost" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
+          <button className="topbar-btn btn-primary" style={{ flex: 2 }} disabled={!valid}
+            onClick={() => { const rev = parseFloat(form.revenue.replace(/[^0-9.]/g, "")); onSave(makeClient(form.name, form.industry, rev, form.contact)); }}>
+            Create Dashboard →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// MAIN APP
+// ─────────────────────────────────────────────
+const NAV = [
+  { id: "overview", label: "Overview", icon: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></> },
+  { id: "gaps",     label: "Revenue Gaps", icon: <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></> },
+  { id: "intel",    label: "Market Intel", icon: <><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" /></> },
+  { id: "actions",  label: "Action Plan", icon: <><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" /></> },
+  { id: "progress", label: "Progress",    icon: <><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></> },
+];
+
+export default function App() {
+  const [clients, setClients] = useState(loadClients);
+  const [activeClientId, setActiveClientId] = useState(() => loadClients()[0]?.id);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [showNewClient, setShowNewClient] = useState(false);
+
+  const client = clients.find(c => c.id === activeClientId) || clients[0];
+
+  useEffect(() => { saveClients(clients); }, [clients]);
+
+  const updateClient = useCallback((id, patch) => {
+    setClients(cs => cs.map(c => c.id === id ? { ...c, ...patch } : c));
+  }, []);
+
+  const updateArea = useCallback((areaId, key, value) => {
+    setClients(cs => cs.map(c => c.id === activeClientId
+      ? { ...c, areas: c.areas.map(a => a.id === areaId ? { ...a, [key]: value } : a) }
+      : c));
+  }, [activeClientId]);
+
+  const updateAction = useCallback((actionId, patch) => {
+    setClients(cs => cs.map(c => c.id === activeClientId
+      ? { ...c, actions: c.actions.map(a => a.id === actionId ? { ...a, ...patch } : a) }
+      : c));
+  }, [activeClientId]);
+
+  const updateIntel = useCallback((intel) => {
+    setClients(cs => cs.map(c => c.id === activeClientId ? { ...c, intelligence: intel } : c));
+  }, [activeClientId]);
+
+  const addClient = useCallback((newClient) => {
+    setClients(cs => [...cs, newClient]);
+    setActiveClientId(newClient.id);
+    setShowNewClient(false);
+    setActiveSection("overview");
+  }, []);
+
+  if (!client) return null;
+
+  return (
+    <div className="app">
+      <style>{CSS}</style>
+
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sb-header">
+          <div className="sb-logo">Rev<span>Audit</span>™</div>
+          <div style={{ fontSize: 11, color: "#B0BDD0", marginTop: 2 }}>Kuharski Capital</div>
+        </div>
+        <div className="sb-nav">
+          <div className="sb-section">Navigation</div>
+          {NAV.map(n => (
+            <button key={n.id} className={`sb-item ${activeSection === n.id ? "active" : ""}`} onClick={() => setActiveSection(n.id)}>
+              <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">{n.icon}</svg>
+              {n.label}
+            </button>
+          ))}
+        </div>
+        <div className="sb-footer">
+          <button className="sb-item" style={{ color: "#0066FF", background: "#EEF4FF", width: "100%", justifyContent: "center", fontWeight: 700 }} onClick={() => setShowNewClient(true)}>
+            + New Client
+          </button>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div className="main">
+        {/* Top bar */}
+        <div className="topbar">
+          <div className="topbar-title">
+            Welcome to <span>{client.name}'s</span> Dashboard
+          </div>
+          <select className="client-select" value={activeClientId} onChange={e => { setActiveClientId(e.target.value); setActiveSection("overview"); }}>
+            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <button className="topbar-btn btn-ghost" onClick={() => setShowNewClient(true)}>+ New Client</button>
+        </div>
+
+        {/* Content */}
+        <div className="content">
+          {activeSection === "overview"  && <OverviewSection     client={client} onUpdateArea={updateArea} />}
+          {activeSection === "gaps"      && <RevenueGapsSection  client={client} onUpdateArea={updateArea} />}
+          {activeSection === "intel"     && <MarketIntelSection  client={client} onUpdateIntel={updateIntel} />}
+          {activeSection === "actions"   && <ActionPlanSection   client={client} onUpdateAction={updateAction} />}
+          {activeSection === "progress"  && <ProgressSection     client={client} />}
+        </div>
+      </div>
+
+      {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
     </div>
   );
 }
